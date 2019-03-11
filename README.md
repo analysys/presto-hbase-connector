@@ -1,6 +1,7 @@
 # 易观presto-hbase-connector组件
 
 组件基于Presto Connector接口规范实现，用来给Presto增加查询HBase的功能。
+相比其他开源版本的HBase Connector，我们的性能要快10到100倍以上。
 
 ## 使用条件
 
