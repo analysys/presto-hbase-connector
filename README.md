@@ -1,6 +1,7 @@
 # 易观presto-hbase-connector组件
 
 组件基于Presto Connector接口规范实现，用来给Presto增加查询HBase的功能。
+
 相比其他开源版本的HBase Connector，我们的性能要快10到100倍以上。
 
 ## 使用条件
@@ -253,8 +254,3 @@ select * from t_event_test where rk in ('rk1', 'rk2', 'rk3');
 使用这个查询模式，要求必须在表的json文件中通过isRowKey指定RowKey字段。
 
 注意：因为我们定义的RowKey字段是虚拟字段，所以对它做除等值查询之外的其他类型的查询都是没有逻辑意义的。
-
-
-
-
-
