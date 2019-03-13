@@ -14,6 +14,8 @@
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
+详细测试结果参见：https://github.com/analysys/public-docs/blob/master/Attachment5(Presto-HBase-Connector-PerformanceTesting).xlsx
+
 ## 功能点对比
 
 | 功能点              | 易观       | 其他 |
