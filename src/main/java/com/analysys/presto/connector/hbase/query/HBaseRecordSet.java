@@ -130,7 +130,7 @@ public class HBaseRecordSet implements RecordSet {
                 // log.info("RegionIndex=" + hBaseSplit.getRegionIndex() + ", 获取regionInfo，耗时：" + (System.currentTimeMillis() - startTime) + " 毫秒。");
                 log.info("Get regionInfo by regionIndex{ " + hBaseSplit.getRegionIndex()
                         + " }, used " + (System.currentTimeMillis() - startTime) + " mill seconds.");
-                return new HBaseScanRecordCursorClientSideNg(this.columnHandles,
+                return new HBaseScanRecordCursorClientSide(this.columnHandles,
                         this.hBaseSplit, scanner, this.fieldIndexMap, connection);
             }
             // Normal scan

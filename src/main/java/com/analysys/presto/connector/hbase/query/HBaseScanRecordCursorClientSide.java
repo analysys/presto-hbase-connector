@@ -25,16 +25,16 @@ import static java.util.Objects.requireNonNull;
  * Don't jump young blood.
  * Created by wupeng on 2018/1/19.
  */
-class HBaseScanRecordCursorClientSideNg extends HBaseRecordCursor {
+class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
 
-    private static final Logger log = Logger.get(HBaseScanRecordCursorClientSideNg.class);
+    private static final Logger log = Logger.get(HBaseScanRecordCursorClientSide.class);
 
     private Iterator iterator;
 
     private Connection connection = null;
 
-    HBaseScanRecordCursorClientSideNg(List<HBaseColumnHandle> columnHandles, HBaseSplit hBaseSplit,
-                                      ClientSideRegionScanner scanner, Map<Integer, HBaseColumnHandle> fieldIndexMap, Connection connection) {
+    HBaseScanRecordCursorClientSide(List<HBaseColumnHandle> columnHandles, HBaseSplit hBaseSplit,
+                                    ClientSideRegionScanner scanner, Map<Integer, HBaseColumnHandle> fieldIndexMap, Connection connection) {
         this.startTime = System.currentTimeMillis();
         this.columnHandles = columnHandles;
         this.fieldIndexMap = fieldIndexMap;
