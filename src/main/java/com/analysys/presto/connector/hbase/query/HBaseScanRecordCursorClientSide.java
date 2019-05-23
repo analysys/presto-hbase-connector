@@ -20,9 +20,9 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 
 /**
- * 使用rawCell api获取字段值，统计api性能，他的耗时比getValue快20%左右，但是在组件中性能提升不明显
- * HBase record cursor fetch record in split, scan
+ * HBase clientSideRegionScanner.
  * Don't jump young blood.
+ * Thunder go ahead!
  * Created by wupeng on 2018/1/19.
  */
 class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
@@ -41,12 +41,6 @@ class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
         this.rowKeyColName = requireNonNull(hBaseSplit.getRowKeyName(),
                 "RowKeyName cannot be null if you want to query by RowKey");
 
-        /*long printId = getPrintId();
-        for (int i = 0; i < this.columnHandles.size(); i++) {
-            log.info("printId=" + printId
-                    + ", columnHandleInfo[ " + i + " ]:" + columnHandles.get(i).toString());
-        }*/
-
         this.split = hBaseSplit;
         try {
             if (scanner != null)
@@ -61,15 +55,11 @@ class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
     }
 
     public boolean advanceNextPosition() {
-        /*if (recordCount <= 0) {
-            log.info("advanceNextPosition: " + this.split.toSimpleString2());
-        }*/
         try {
             Result record = this.getNextRecord();
             if (record == null) {
                 InetAddress localhost = InetAddress.getLocalHost();
-                // 随机打印，减少Split运行结果的打印数量
-                // if (System.currentTimeMillis() % SYSTEMOUT_INTERVAL >= 0)
+                // random print
                 if (System.currentTimeMillis() % Constant.SYSTEMOUT_INTERVAL >= 0)
                     log.info("SCAN RECORD. advanceNextPosition: tableName=" + split.getTableName() + ", startRow=" + split.getStartRow()
                             + ", endRow=" + split.getEndRow() + ". READ_DATA_TIME="
@@ -122,9 +112,7 @@ class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
                 return (Result) iterator.next();
             }
         } catch (Exception ex) {
-            if (!ex.getMessage().contains("InterrupedIOException")) {
-                log.error(ex, ex.getMessage());
-            }
+            log.error(ex, ex.getMessage());
             this.close();
             return null;
         }
