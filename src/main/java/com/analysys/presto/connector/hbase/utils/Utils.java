@@ -20,12 +20,23 @@ import com.facebook.presto.jdbc.internal.jackson.databind.ObjectMapper;
 import com.facebook.presto.spi.ColumnMetadata;
 import com.facebook.presto.spi.type.*;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.airlift.log.Logger;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HRegionInfo;
+import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
+import org.apache.hadoop.hbase.protobuf.generated.SnapshotProtos;
+import org.apache.hadoop.hbase.snapshot.SnapshotDescriptionUtils;
+import org.apache.hadoop.hbase.snapshot.SnapshotManifest;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
@@ -141,8 +152,8 @@ public class Utils {
         }
 
         switch (type.toLowerCase()) {
-            case "string":
-                return VarcharType.VARCHAR;
+            /*case "string":
+                return VarcharType.VARCHAR;*/
             case "int":
                 return IntegerType.INTEGER;
             case "bigint":
@@ -154,7 +165,7 @@ public class Utils {
             case "array<string>":
                 return new ArrayType(VarcharType.VARCHAR);
             case "timestamp":
-                return TimestampType.TIMESTAMP;
+                // return TimestampType.TIMESTAMP;
             case "datetime":
                 return TimestampType.TIMESTAMP;
             case "number":
@@ -193,6 +204,60 @@ public class Utils {
         byte[] destAry = new byte[length];
         System.arraycopy(srcAry, srcPos, destAry, 0, length);
         return destAry;
+    }
+
+    public static Configuration getHadoopConf(String zookeeperQuorum, String zookeeperClientPort) {
+        Configuration conf = HBaseConfiguration.create();
+        conf.set("hbase.zookeeper.quorum", zookeeperQuorum);
+        conf.set("hbase.zookeeper.property.clientPort", zookeeperClientPort);
+        conf.set("hbase.cluster.distributed", "true");
+        conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+        conf.set("hbase.client.retries.number", "3");
+        return conf;
+    }
+
+    public static List<HRegionInfo> getRegionInfosFromManifest(SnapshotManifest manifest) {
+        List<SnapshotProtos.SnapshotRegionManifest> regionManifests = manifest.getRegionManifests();
+        if (regionManifests == null) {
+            throw new IllegalArgumentException("Snapshot seems empty");
+        }
+
+        List<HRegionInfo> regionInfos = Lists.newArrayListWithCapacity(regionManifests.size());
+
+        for (SnapshotProtos.SnapshotRegionManifest regionManifest : regionManifests) {
+            HRegionInfo hri = HRegionInfo.convert(regionManifest.getRegionInfo());
+            if (hri.isOffline() && (hri.isSplit() || hri.isSplitParent())) {
+                continue;
+            }
+            regionInfos.add(hri);
+        }
+        return regionInfos;
+    }
+
+    /**
+     * get region infos
+     *
+     * @param zookeeperQuorum     zookeeper quorum
+     * @param zookeeperClientPort zookeeper client port
+     * @param hBaseRootDir        HBase root dir
+     * @param snapshotName        snapshot name
+     * @return region info list
+     * @throws IOException IOException
+     */
+    public static List<HRegionInfo> getRegionInfos(String zookeeperQuorum, String zookeeperClientPort,
+                                                   String hBaseRootDir, String snapshotName) throws IOException {
+        try {
+            Configuration conf = Utils.getHadoopConf(zookeeperQuorum, zookeeperClientPort);
+            Path root = new Path(hBaseRootDir);
+            FileSystem fs = FileSystem.get(conf);
+            Path snapshotDir = SnapshotDescriptionUtils.getCompletedSnapshotDir(snapshotName, root);
+            HBaseProtos.SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
+            SnapshotManifest manifest = SnapshotManifest.open(conf, fs, snapshotDir, snapshotDesc);
+            return Utils.getRegionInfosFromManifest(manifest);
+        } catch (IOException ex) {
+            logger.error("get region info error: " + ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
 }

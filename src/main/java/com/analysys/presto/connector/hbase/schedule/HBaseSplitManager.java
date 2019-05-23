@@ -13,11 +13,11 @@
  */
 package com.analysys.presto.connector.hbase.schedule;
 
+import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.meta.*;
-import com.analysys.presto.connector.hbase.meta.HBaseTableHandle;
-import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.utils.Constant;
+import com.analysys.presto.connector.hbase.utils.TimeClicker;
 import com.analysys.presto.connector.hbase.utils.Utils;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorSplitManager;
@@ -29,6 +29,8 @@ import com.google.common.base.Preconditions;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hbase.HRegionInfo;
+import org.apache.hadoop.hbase.client.Admin;
 
 import javax.inject.Inject;
 import java.util.*;
@@ -78,16 +80,144 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 String.format("The meta info of table %s.%s doesn't exists! Table meta dir is %s.",
                         schemaName, tableName, config.getMetaDir()));
 
-        List<HBaseSplit> splits = new ArrayList<>();
-
+        List<HBaseSplit> splits;
         List<ConditionInfo> conditions = findConditionFromConstraint(constraint);
-
         if (Utils.isBatchGet(conditions, tableMetaInfo.getRowKeyColName())) {
             splits = getSplitsForBatchGet(conditions, tableMetaInfo, tableHandle);
             Collections.shuffle(splits);
             return new FixedSplitSource(splits);
         } // end of if isBatchGet
 
+        List<String> clientSideTables = getClientSideTables(config.getClientSideQueryModeTableNames());
+        if (isClientSideRegionScanTable(schemaName, tableName, clientSideTables)) {
+            splits = getSplitsForClientSide(schemaName, tableName, conditions, tableMetaInfo.getRowKeyColName());
+        } else {
+            splits = getSplitsForScan(conditions, tableMetaInfo, schemaName, tableName);
+        }
+
+        log.info("The final split count is " + splits.size() + ".");
+        splits.forEach(split -> log.info("print split info：" + split.toString()));
+
+        Collections.shuffle(splits);
+        return new FixedSplitSource(splits);
+    }
+
+    /**
+     * get splits for client side query mode
+     *
+     * @param schemaName schema name
+     * @param tableName  table name
+     * @param conditions conditions
+     * @param rowKeyName rowKey name
+     * @return splits
+     */
+    private List<HBaseSplit> getSplitsForClientSide(String schemaName, String tableName,
+                                                    List<ConditionInfo> conditions, String rowKeyName) {
+        log.info("ClientSideScan:" + schemaName + ":" + tableName);
+        int hostIndex = 0;
+        long createSnapshotTime = 0;
+        List<HBaseSplit> splits = new ArrayList<>();
+        String snapshotName = null;
+        try {
+            long start = System.currentTimeMillis();
+            // create snapshot with retry
+            snapshotName = createSnapshotWithRetry(schemaName, tableName, clientManager.getAdmin());
+            createSnapshotTime = TimeClicker.calculateTimeTo(start);
+
+            // get regions from snapshot
+            List<HRegionInfo> regions = Utils.getRegionInfos(config.getHbaseZookeeperQuorum(),
+                    config.getZookeeperClientPort(), config.getHbaseRootDir(), snapshotName);
+            // create splits
+            for (HRegionInfo regionInfo : regions) {
+                // Client side region scanner using no startKey and endKey.
+                splits.add(new HBaseSplit(this.connectorId, schemaName, tableName,
+                        rowKeyName, getHostAddresses(hostIndex), null, null, conditions,
+                        config.isRandomScheduleRedundantSplit(),
+                        hostIndex, regionInfo, snapshotName));
+                hostIndex++;
+            }
+        } catch (Exception e) {
+            log.error(e, "E-1-1: " + e.getMessage());
+        }
+        log.info("create snapshot " + snapshotName + ", using " + createSnapshotTime + " mill seconds.");
+        return splits;
+    }
+
+    /**
+     * create snapshot with retry
+     *
+     * @param admin HBase admin
+     * @return snapshot name
+     */
+    private String createSnapshotWithRetry(String schemaName, String tableName, Admin admin) {
+        long start = System.currentTimeMillis();
+        String snapshotName = null;
+        try {
+            snapshotName = "ss-" + schemaName + "." + tableName + "-" + System.nanoTime();
+            HBaseMetadata.createSnapshot(snapshotName, admin, schemaName, tableName);
+        } catch (Exception e) {
+            log.error(e, "E-2-1: Exception: create snapshot failed, snapshotName is " + snapshotName
+                    + ", track:" + e.getMessage());
+            for (int i = 0; i < 15; i++) {
+                try {
+                    Thread.sleep(100);
+                    HBaseMetadata.createSnapshot(snapshotName, admin, schemaName, tableName);
+                    log.info("Recreate snapshot success! snapshotName is " + snapshotName
+                            + ", retried ：" + i + " times, using " + (System.currentTimeMillis() - start) + " mill seconds.");
+                    return snapshotName;
+                } catch (Exception ee) {
+                    log.error(ee, "E-2-2: create snapshot failed, snapshotName is " + snapshotName
+                            + ", track:" + ee.getMessage());
+                }
+            }
+            log.error("E-2-3: after retry, create snapshot " + snapshotName + " still failed.");
+        }
+        log.info("createSnapshotWithRetry: create snapshot " + snapshotName
+                + " finished, using " + (System.currentTimeMillis() - start) + " mill seconds.");
+        return snapshotName;
+    }
+
+    /**
+     * check if current table using ClientSideRegionScanner to query
+     *
+     * @param schemaName       schema name
+     * @param tableName        table name
+     * @param clientSideTables clientSideTables
+     * @return true or false
+     */
+    private boolean isClientSideRegionScanTable(String schemaName, String tableName,
+                                                List<String> clientSideTables) {
+        // if we didn't open client side scan, return false
+        if (!config.isEnableClientSideScan()) {
+            return false;
+        }
+        Preconditions.checkState(clientSideTables != null && !clientSideTables.isEmpty(),
+                "Parameter 'clientside-querymode-tablenames' cannot be NULL when 'enable-clientSide-scan' is true!" +
+                        "\nSet this to * if all the table are using ClientSide query mode.");
+        String schemaAndTableName = schemaName + ":" + tableName;
+        return "*".equals(clientSideTables.get(0)) || clientSideTables.contains(schemaAndTableName);
+    }
+
+    private List<String> getClientSideTables(String clientSideQueryModeTableNames) {
+        if (clientSideQueryModeTableNames == null) {
+            return null;
+        }
+        return Arrays.asList(clientSideQueryModeTableNames.split(","));
+    }
+
+    /**
+     * get splits for scan query mode
+     *
+     * @param conditions    conditions
+     * @param tableMetaInfo tableMetaInfo
+     * @param schemaName    schema name
+     * @param tableName     table name
+     * @return splits
+     */
+    private List<HBaseSplit> getSplitsForScan(List<ConditionInfo> conditions,
+                                              TableMetaInfo tableMetaInfo,
+                                              String schemaName, String tableName) {
+        List<HBaseSplit> splits = new ArrayList<>();
         int hostIndex = 0;
         List<String> startKeyList;
 
@@ -110,7 +240,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 endKey = saltyStartKey + ROWKEY_TAIL;
                 splits.add(new HBaseSplit(this.connectorId, schemaName, tableName,
                         tableMetaInfo.getRowKeyColName(), getHostAddresses(hostIndex),
-                        saltyStartKey, endKey, conditions, config.isRandomScheduleRedundantSplit()));
+                        saltyStartKey, endKey, conditions, config.isRandomScheduleRedundantSplit(), null, null, null));
                 hostIndex += 1;
             }
         }
@@ -118,14 +248,9 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         else {
             splits.add(new HBaseSplit(this.connectorId, schemaName, tableName,
                     tableMetaInfo.getRowKeyColName(), getHostAddresses(hostIndex),
-                    null, null, conditions, config.isRandomScheduleRedundantSplit()));
+                    null, null, conditions, config.isRandomScheduleRedundantSplit(), null, null, null));
         }
-
-        log.info("The final split count is " + splits.size() + ".");
-        splits.stream().forEach(split -> log.info("print split info：" + split.toString()));
-
-        Collections.shuffle(splits);
-        return new FixedSplitSource(splits);
+        return splits;
     }
 
     private List<HBaseSplit> getSplitsForBatchGet(List<ConditionInfo> conditions,
@@ -134,8 +259,8 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         List<HBaseSplit> splits = new ArrayList<>();
         // Find all conditions of rowKey(rowKey='xxx' or rowKey in('xxx','xxx'))
         List<ConditionInfo> rowKeys = conditions.stream().filter(cond ->
-                tableMetaInfo.getRowKeyColName().equals(cond.getColName())
-                        && cond.getOperator() == CONDITION_OPER.EQ
+                        tableMetaInfo.getRowKeyColName().equals(cond.getColName())
+                                && cond.getOperator() == CONDITION_OPER.EQ
         ).collect(Collectors.toList());
 
         int hostIndex = 0;
@@ -155,7 +280,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 splits.add(new HBaseSplit(this.connectorId, tableHandle.getSchemaTableName().getSchemaName(),
                         tableHandle.getSchemaTableName().getTableName(), tableMetaInfo.getRowKeyColName(),
                         getHostAddresses(hostIndex), null, null, splitConditions,
-                        config.isRandomScheduleRedundantSplit()));
+                        config.isRandomScheduleRedundantSplit(), null, null, null));
                 hostIndex++;
                 splitConditions = new ArrayList<>();
             } // end of if
@@ -164,7 +289,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
             splits.add(new HBaseSplit(this.connectorId, tableHandle.getSchemaTableName().getSchemaName(),
                     tableHandle.getSchemaTableName().getTableName(), tableMetaInfo.getRowKeyColName(),
                     getHostAddresses(hostIndex), null, null, splitConditions,
-                    config.isRandomScheduleRedundantSplit()));
+                    config.isRandomScheduleRedundantSplit(), null, null, null));
         }
         log.info("Batch get by RowKey. Split count: "
                 + splits.size() + ", table=" + tableHandle.getSchemaTableName().toString());

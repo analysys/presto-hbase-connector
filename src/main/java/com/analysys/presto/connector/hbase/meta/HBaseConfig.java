@@ -37,6 +37,7 @@ public class HBaseConfig {
     private String prestoWorkersIp;
     private String prestoWorkersName;
     private int prestoServerPort;
+
     /**
      * Can we random schedule redundant split
      */
@@ -52,6 +53,17 @@ public class HBaseConfig {
      *   --table_C.json
      */
     private String metaDir;
+
+    private String hbaseRootDir;
+
+    private boolean enableClientSideScan = true;
+
+    /**
+     * Table names that using ClientSideRegionScanner to do query operation.
+     * namespace_1:tableName_1,namespace_2:tableName_2,namespace_2:tableName_3
+     * Set * if all tables are using ClientSideRegionScanner
+     */
+    private String clientSideQueryModeTableNames;
 
     @NotNull
     public String getMetaDir() {
@@ -148,6 +160,34 @@ public class HBaseConfig {
     @NotNull
     public int getPrestoServerPort() {
         return prestoServerPort;
+    }
+
+    @NotNull
+    public String getHbaseRootDir() {
+        return hbaseRootDir;
+    }
+
+    @Config("hbase-rootdir")
+    public void setHbaseRootDir(String hbaseRootDir) {
+        this.hbaseRootDir = hbaseRootDir;
+    }
+
+    public boolean isEnableClientSideScan() {
+        return enableClientSideScan;
+    }
+
+    @Config("enable-clientSide-scan")
+    public void setEnableClientSideScan(boolean enableClientSideScan) {
+        this.enableClientSideScan = enableClientSideScan;
+    }
+
+    public String getClientSideQueryModeTableNames() {
+        return clientSideQueryModeTableNames;
+    }
+
+    @Config("clientside-querymode-tablenames")
+    public void setClientSideQueryModeTableNames(String clientSideQueryModeTableNames) {
+        this.clientSideQueryModeTableNames = clientSideQueryModeTableNames;
     }
 
     @Override
