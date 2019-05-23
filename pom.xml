@@ -5,7 +5,7 @@
 
 	<groupId>com.analysys.presto</groupId>
 	<artifactId>presto0.20-hbase</artifactId>
-	<version>0.3.22</version>
+	<version>dev_0.1.1</version>
 
 	<properties>
 		<air.check.skip-license>true</air.check.skip-license>
