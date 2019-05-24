@@ -82,16 +82,18 @@ public class HBaseSplitManager implements ConnectorSplitManager {
 
         List<HBaseSplit> splits;
         List<ConditionInfo> conditions = findConditionFromConstraint(constraint);
+        // batch get
         if (Utils.isBatchGet(conditions, tableMetaInfo.getRowKeyColName())) {
             splits = getSplitsForBatchGet(conditions, tableMetaInfo, tableHandle);
             Collections.shuffle(splits);
             return new FixedSplitSource(splits);
-        } // end of if isBatchGet
-
-        List<String> clientSideTables = getClientSideTables(config.getClientSideQueryModeTableNames());
-        if (isClientSideRegionScanTable(schemaName, tableName, clientSideTables)) {
+        }
+        // client side scan
+        else if (isClientSideRegionScanTable(schemaName, tableName, config.getClientSideQueryModeTableNames())) {
             splits = getSplitsForClientSide(schemaName, tableName, conditions, tableMetaInfo.getRowKeyColName());
-        } else {
+        }
+        // normal scan
+        else {
             splits = getSplitsForScan(conditions, tableMetaInfo, schemaName, tableName);
         }
 
@@ -180,17 +182,20 @@ public class HBaseSplitManager implements ConnectorSplitManager {
     /**
      * check if current table using ClientSideRegionScanner to query
      *
-     * @param schemaName       schema name
-     * @param tableName        table name
-     * @param clientSideTables clientSideTables
+     * @param schemaName                    schema name
+     * @param tableName                     table name
+     * @param clientSideQueryModeTableNames clientSideQueryModeTableNames
      * @return true or false
      */
     private boolean isClientSideRegionScanTable(String schemaName, String tableName,
-                                                List<String> clientSideTables) {
+                                                String clientSideQueryModeTableNames) {
         // if we didn't open client side scan, return false
         if (!config.isEnableClientSideScan()) {
             return false;
         }
+
+        List<String> clientSideTables = getClientSideTables(clientSideQueryModeTableNames);
+
         Preconditions.checkState(clientSideTables != null && !clientSideTables.isEmpty(),
                 "Parameter 'clientside-querymode-tablenames' cannot be NULL when 'enable-clientSide-scan' is true!" +
                         "\nSet this to * if all the table are using ClientSide query mode.");
@@ -259,8 +264,8 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         List<HBaseSplit> splits = new ArrayList<>();
         // Find all conditions of rowKey(rowKey='xxx' or rowKey in('xxx','xxx'))
         List<ConditionInfo> rowKeys = conditions.stream().filter(cond ->
-                        tableMetaInfo.getRowKeyColName().equals(cond.getColName())
-                                && cond.getOperator() == CONDITION_OPER.EQ
+                tableMetaInfo.getRowKeyColName().equals(cond.getColName())
+                        && cond.getOperator() == CONDITION_OPER.EQ
         ).collect(Collectors.toList());
 
         int hostIndex = 0;
