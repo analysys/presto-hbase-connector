@@ -10,7 +10,7 @@
 | ------ | ------------------------- |
 | 数据量 | 事件表500万条数据，90个字段               |
 | 节点数 | 3                         |
-| 硬件   | 16逻辑核 64G内存 4T*2硬盘 |
+| 硬件   | 16逻辑核，64G内存，4T*2硬盘。给HBase分配了16G内存，读写各占40% |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
