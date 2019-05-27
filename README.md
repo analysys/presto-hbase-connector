@@ -295,22 +295,18 @@ ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Clien
 
 * hbase-rootdir
 
-  ```
   这个参数与hbase-site.xml的hbase.rootdir保持一致即可。
-  ```
 
 * enable-clientSide-scan
 
-  ```
   是否开启ClientSide查询模式。
-  ```
 
 * clientside-querymode-tablenames
 
+  定义哪些表需要使用ClientSide查询，表名之间用英文','间隔，例如：
+
   ```
-  定义哪些表需要使用ClientSide查询，表名之间用英文','间隔。例如：
-  	namespace_a:table_a,namespace_a:table_b,namespace_b:table_c
-  如果所有表都要使用ClientSide查询，可以配置成'*'。
+  namespace_a:table_a,namespace_a:table_b,namespace_b:table_c
   ```
 
-  
+  如果所有表都要使用ClientSide查询，可以配置成*。
