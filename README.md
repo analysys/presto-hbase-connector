@@ -390,10 +390,10 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 在presto-hbase-connector模块中增加如下dependency：
 
 ```
-	<dependency>
-  	      <groupId>com.facebook.presto.hadoop</groupId>
-    	    <artifactId>hadoop-apache2</artifactId>
-	</dependency>
+<dependency>
+	<groupId>com.facebook.presto.hadoop</groupId>
+	<artifactId>hadoop-apache2</artifactId>
+</dependency>
 ```
 
 ###### 2) 使用hbase-shaded-client和hbase-shade-server依赖
