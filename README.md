@@ -285,7 +285,7 @@ select * from t_event_test where rk in ('rk1', 'rk2', 'rk3');
 ##### 4.ClientSideRegionScanner
 
 ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Client端直接扫描HDFS上的数据文件，不需要发送请求给RegionServer，再由RegionServer扫描HDFS上的文件。
-这样减少了RegionServer的负担，并且即使RegionServer处于不可用状态也不影响查询。同时，因为是直接读取HDFS，所以负载较为均衡的集群中，可以基本实现本地读策略，避免了很多网络负载。
+这样减少了RegionServer的负担，并且即使RegionServer处于不可用状态也不影响查询。同时，因为是直接读取HDFS，所以在负载较为均衡的集群中，可以基本实现本地读策略，避免了很多网络负载。
 
 下图是ClientSideRegionScanner与普通RegionScanner的性能对比，通过比较可以得出，大部分查询都有了30%以上的提升，尤其是接近全表扫描的查询性能提升更为明显：
 
@@ -310,3 +310,96 @@ ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Clien
   ```
 
   如果所有表都要使用ClientSide查询，可以配置成*。
+
+ClientSideRegionScanner的查询是依赖Snapshot的，所以为了查询能获取到最新的数据，每次查询时都会自动创建一个命名规则如下的Snapshot：
+
+```
+"ss-" + schemaName + "." + tableName + "-" + System.nanoTime()
+```
+
+HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionScanner时最好能够做到定时清理过期Snapshot。
+
+## 问题解决
+
+##### 1.ClientSideRegionScanner与Snappy压缩格式的集成
+
+###### 1) SnappyCodec找不到的问题
+
+这是因为在Presto的classPath中缺少hadoop-common-2.7.3.jar这个jar包。因为我们是基于ambari搭建的presto，所以需要将这个jar包拷贝到/usr/lib/presto/lib目录下。
+
+###### 2) SnappyCodec无法转换为CompressionCodec的问题
+
+经过定位发现Presto加载插件的类时是采用自定义的PluginClassLoader，而SnappyCodec是采用AppClassLoader加载的。二者classLoader不同导致父类和子类不具备父子继承关系。
+
+修改hbase-common-1.1.2.jar中代码，将SnappyCodec使用PluginClassLoader的方式加载解决了这个问题。修改代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改后为：
+
+```
+  /**
+   * Returns the classloader to load the Codec class from.
+   */
+  private static ClassLoader getClassLoaderForCodec() {
+    /*修改前：
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    if (cl == null) {
+      cl = Compression.class.getClassLoader();
+    }*/
+    // 修改后：
+    ClassLoader cl = Compression.class.getClassLoader();
+    if (cl == null) {
+      cl = Thread.currentThread().getContextClassLoader();
+    }
+    
+    if (cl == null) {
+      cl = ClassLoader.getSystemClassLoader();
+    }
+    if (cl == null) {
+      throw new RuntimeException("A ClassLoader to load the Codec could not be determined");
+    }
+```
+
+用修改后的代码重新install maven仓库，再重新打组件jar包即可。
+
+###### 3) java.lang.UnsatisfiedLinkError: org.apache.hadoop.util.NativeCodeLoader.buildSupportsSnappy()Z
+
+这是需要在jvm中增加hadoop的native snappy库。可以在presto的jvm.config中，增加如下配置：
+
+```
+-Djava.library.path={path to hadoop native lib}
+```
+
+###### 4) java.io.IOException: java.lang.NoSuchMethodError: com.google.common.base.Objects.toStringHelper(Ljava/lang/Object;)Lcom/google/common/base/Objects$ToStringHelper;
+
+这是因为guava在v20.0以上的版本去掉了com.google.common.base.Objects中实现的内部类ToStringHelper，以及几个toStringHelper的方法。
+
+可以从低版本中将这些删除的代码增加到高版本的guava源码中，重新打包之后打出的guava-24.1-jre.jar替换到maven库中，然后重新构建presto-hbase.jar包。
+
+并将guava-24.1-jre.jar上传到PrestoWorker的lib目录中。
+
+或者使用maven的shade插件来解决这类jar包冲突的问题。
+
+5) Stopwatch的构造函数找不到
+
+需要将guava的com.google.common.base.Stopwatch类中的构造函数改为public即可。
+
+或者使用shade来解决这类jar包冲突的问题。
+
+##### 2.ClientSideRegionScanner本地debug查询SNAPPY压缩格式的hbase表报错的问题。
+
+###### 1) 找不到类CanUnbuff
+
+在presto-hbase-connector模块中增加如下dependency：
+
+```
+	<dependency>
+  	      <groupId>com.facebook.presto.hadoop</groupId>
+    	    <artifactId>hadoop-apache2</artifactId>
+	</dependency>
+```
+
+###### 2) 使用hbase-shaded-client和hbase-shade-server依赖
+
+###### 3) 参考“SnappyCodec无法转换为CompressionCodec的问题”部分，修改hbase-common模块的代码，并重新编译更新maven库。其中hbase-shade-client、hbase-shade-server和hbase-common这三个模块必须重新编译。
+
+###### 4) 在idea的run->Edit Configuration中配置-Djava.library.path到PrestoServer的VM options中。
+
+java.library.path就是hadoop的native snappy库路径。
