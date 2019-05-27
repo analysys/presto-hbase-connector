@@ -160,7 +160,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         } catch (Exception e) {
             log.error(e, "E-2-1: Exception: create snapshot failed, snapshotName is " + snapshotName
                     + ", track:" + e.getMessage());
-            for (int i = 0; i < 15; i++) {
+            for (int i = 0; i < config.getCreateSnapshotRetryTimes(); i++) {
                 try {
                     Thread.sleep(100);
                     HBaseMetadata.createSnapshot(snapshotName, admin, schemaName, tableName);

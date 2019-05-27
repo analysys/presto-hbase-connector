@@ -65,6 +65,11 @@ public class HBaseConfig {
      */
     private String clientSideQueryModeTableNames;
 
+    /**
+     * create snapshot retry times
+     */
+    private int createSnapshotRetryTimes = 15;
+
     @NotNull
     public String getMetaDir() {
         return metaDir;
@@ -190,6 +195,15 @@ public class HBaseConfig {
         this.clientSideQueryModeTableNames = clientSideQueryModeTableNames;
     }
 
+    public int getCreateSnapshotRetryTimes() {
+        return createSnapshotRetryTimes;
+    }
+
+    @Config("clientside-createsnapshot-retrytimes")
+    public void setCreateSnapshotRetryTimes(int createSnapshotRetryTimes) {
+        this.createSnapshotRetryTimes = createSnapshotRetryTimes;
+    }
+
     @Override
     public String toString() {
         return "HBaseConfig{" +
@@ -201,6 +215,7 @@ public class HBaseConfig {
                 ", prestoServerPort=" + prestoServerPort +
                 ", randomScheduleRedundantSplit=" + randomScheduleRedundantSplit +
                 ", metaDir='" + metaDir + '\'' +
+                ", createSnapshotRetryTimes='" + createSnapshotRetryTimes + '\'' +
                 '}';
     }
 
