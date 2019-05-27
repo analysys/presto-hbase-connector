@@ -6,11 +6,11 @@
 
 ## 性能对比
 
-| 环境   | 明细                      |
-| ------ | ------------------------- |
-| 数据量 | 事件表500万条数据，90个字段               |
-| 节点数 | 3                         |
-| 硬件   | 16逻辑核 64G内存 4T*2硬盘 |
+| 环境   | 明细                        |
+| ------ | --------------------------- |
+| 数据量 | 事件表500万条数据，90个字段 |
+| 节点数 | 3                           |
+| 硬件   | 16逻辑核 64G内存 4T*2硬盘   |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
@@ -18,7 +18,7 @@
 
 ## 功能点对比
 
-| 功能点              | 易观       | 其他 |
+| 功能点              | 易观         | 其他   |
 | ------------------- | ------------ | ------ |
 | 加盐查询            | 支持         | 不支持 |
 | 拼接StartKey/EndKey | 支持         | 不支持 |
@@ -64,41 +64,41 @@ meta-dir=/etc/presto/chbase
 
 * connector.name
 
-    ​       该配置固定设置为hbase
+         该配置固定设置为hbase
 
 * zookeeper-quorum
 
-    ​       相当于HBase API的hbase.zookeeper.quorum参数
+         相当于HBase API的hbase.zookeeper.quorum参数
 
 * zookeeper-client-port
 
-    ​       相当于HBase API的hbase.zookeeper.property.clientPort参数
+         相当于HBase API的hbase.zookeeper.property.clientPort参数
 
 * hbase-cluster-distributed
 
-    ​       相当于HBase API的hbase.cluster.distributed参数
+         相当于HBase API的hbase.cluster.distributed参数
 
 * presto-workers-name
 
-    ​       presto worker的hostname，以英文逗号间隔。
-
-    ​       如果split-remotely-accessible配置为false，则该参数可以不设置。
+         presto worker的hostname，以英文逗号间隔。
+         
+         如果split-remotely-accessible配置为false，则该参数可以不设置。
 
 * presto-server-port
 
-    ​       与{Presto_Config_Dir}/config.properties配置文件的http-server.http.port参数
+         与{Presto_Config_Dir}/config.properties配置文件的http-server.http.port参数
 
 * random-schedule-redundant-split
 
-    ​       Presto默认采用按可用Worker的顺序，依次分配Split的方式调度Split。
-
-    ​       这样容易导致多表查询时，第余数个Split集中调度到可用Worker列表开头的几台机器上。
-
-    ​	    将这个参数设置为true可以改为将第余数个Split随机调度到一个Worker上执行。
+         Presto默认采用按可用Worker的顺序，依次分配Split的方式调度Split。
+         
+         这样容易导致多表查询时，第余数个Split集中调度到可用Worker列表开头的几台机器上。
+         
+         	    将这个参数设置为true可以改为将第余数个Split随机调度到一个Worker上执行。
 
 * meta-dir
 
-    ​       存放HBase表元数据信息的目录。
+         存放HBase表元数据信息的目录。
 
 ##### 2.配置namespace
 
@@ -215,7 +215,7 @@ mvn clean package
 在组件中使用盐值需要在json文件中设置以下两个属性：
 * rowKeySaltUpperAndLower
 
-    ​       该属性用来定义盐值的数值范围，如果设置为"0,29"，则会从00到29依次生成30对startKey和endKey，每一对startKey和endKey会交给一个split去做数据扫描。如下：
+      该属性用来定义盐值的数值范围，如果设置为"0,29"，则会从00到29依次生成30对startKey和endKey，每一对startKey和endKey会交给一个split去做数据扫描。如下：
 
   ```
   (00, 00|)
@@ -229,7 +229,7 @@ mvn clean package
 
 * rowKeySeparator
 
-    ​       RowKey的不同组成部分之间的分隔符，默认是\001
+         RowKey的不同组成部分之间的分隔符，默认是\001
 
 ##### 2.根据RowKey的组成拼接StartKey和EndKey
 
@@ -258,11 +258,11 @@ select xwhat, xwho, date, xwhen from t_event_test where xwhat='login' and xwho i
 
 * rowKeyFormat
 
-    ​       定义RowKey是由哪些字段有序组成。以刚才的例子来说，该参数应该配置为"xwhat,xwho"
+         定义RowKey是由哪些字段有序组成。以刚才的例子来说，该参数应该配置为"xwhat,xwho"
 
 * rowKeySeparator
 
-    ​       RowKey的不同组成部分之间的分隔符，默认是\001
+         RowKey的不同组成部分之间的分隔符，默认是\001
 
 如果想查看sql具体切分出了哪些split，可以将日志级别设置为info，在server.log中查看。
 
@@ -281,3 +281,36 @@ select * from t_event_test where rk in ('rk1', 'rk2', 'rk3');
 使用这个查询模式，要求必须在表的json文件中通过isRowKey指定RowKey字段。
 
 注意：因为我们定义的RowKey字段是虚拟字段，所以对它做除等值查询之外的其他类型的查询都是没有逻辑意义的。
+
+##### 4.ClientSideRegionScanner
+
+ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Client端直接扫描HDFS上的数据文件，不需要发送请求给RegionServer，再由RegionServer扫描HDFS上的文件。
+这样减少了RegionServer的负担，并且即使RegionServer处于不可用状态也不影响查询。同时，因为是直接读取HDFS，所以负载较为均衡的集群中，可以基本实现本地读策略，避免了很多网络负载。
+
+下图是ClientSideRegionScanner与普通RegionScanner的性能对比，通过比较可以得出，大部分查询都有了30%以上的提升，尤其是接近全表扫描的查询性能提升更为明显：
+
+![ClientSide&NormalScanner.png](https://github.com/analysys/presto-hbase-connector/blob/dev_0.1.1/imgs/ClientSide-NormalScanner.png?raw=true)
+
+使用ClientSide查询需要设置以下三个参数：
+
+* hbase-rootdir
+
+  ```
+  这个参数与hbase-site.xml的hbase.rootdir保持一致即可。
+  ```
+
+* enable-clientSide-scan
+
+  ```
+  是否开启ClientSide查询模式。
+  ```
+
+* clientside-querymode-tablenames
+
+  ```
+  定义哪些表需要使用ClientSide查询，表名之间用英文','间隔。例如：
+  	namespace_a:table_a,namespace_a:table_b,namespace_b:table_c
+  如果所有表都要使用ClientSide查询，可以配置成'*'。
+  ```
+
+  
