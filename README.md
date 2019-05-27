@@ -377,7 +377,7 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 或者使用maven的shade插件来解决这类jar包冲突的问题。
 
-5) Stopwatch的构造函数找不到
+###### 5) Stopwatch的构造函数找不到
 
 需要将guava的com.google.common.base.Stopwatch类中的构造函数改为public即可。
 
