@@ -329,9 +329,9 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 ###### 2) SnappyCodec无法转换为CompressionCodec的问题
 
-经过定位发现Presto加载插件的类时是采用自定义的PluginClassLoader，而SnappyCodec是采用AppClassLoader加载的。二者classLoader不同导致父类和子类不具备父子继承关系。
+经过定位发现Presto加载插件的类是采用自定义的PluginClassLoader，而SnappyCodec是采用AppClassLoader加载的。二者classLoader不同导致父类和子类不具备父子继承关系。
 
-修改hbase-common-1.1.2.jar中代码，将SnappyCodec使用PluginClassLoader的方式加载解决了这个问题。修改代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改后为：
+修改hbase-common-1.1.2.jar中代码，将SnappyCodec使用PluginClassLoader的方式加载解决了这个问题。需要修改的代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改方法如下：
 
 ```
   /**
@@ -371,7 +371,7 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 这是因为guava在v20.0以上的版本去掉了com.google.common.base.Objects中实现的内部类ToStringHelper，以及几个toStringHelper的方法。
 
-可以从低版本中将这些删除的代码增加到高版本的guava源码中，重新打包之后打出的guava-24.1-jre.jar替换到maven库中，然后重新构建presto-hbase.jar包。
+可以从低版本中将这些删除的代码增加到高版本的guava源码中，重新编译更新maven库中的guava-24.1-jre.jar之后，再重新构建presto-hbase.jar包。
 
 并将guava-24.1-jre.jar上传到PrestoWorker的lib目录中。
 
@@ -379,7 +379,7 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 ###### 5) Stopwatch的构造函数找不到
 
-需要将guava的com.google.common.base.Stopwatch类中的构造函数改为public即可。
+将guava的com.google.common.base.Stopwatch类中的构造函数改为public即可。
 
 或者使用shade来解决这类jar包冲突的问题。
 
@@ -393,13 +393,12 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 <dependency>
 	<groupId>com.facebook.presto.hadoop</groupId>
 	<artifactId>hadoop-apache2</artifactId>
+	<version>2.7.4-1</version>
 </dependency>
 ```
 
-###### 2) 使用hbase-shaded-client和hbase-shade-server依赖
+###### 2) 使用hbase-shaded-client和hbase-shaded-server依赖
 
 ###### 3) 参考“SnappyCodec无法转换为CompressionCodec的问题”部分，修改hbase-common模块的代码，并重新编译更新maven库。其中hbase-shade-client、hbase-shade-server和hbase-common这三个模块必须重新编译。
 
-###### 4) 在idea的run->Edit Configuration中配置-Djava.library.path到PrestoServer的VM options中。
-
-java.library.path就是hadoop的native snappy库路径。
+###### 4) 在idea的run->Edit Configuration中配置-Djava.library.path到PrestoServer的VM options中。java.library.path就是hadoop的native snappy库路径。
