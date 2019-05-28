@@ -1,14 +1,14 @@
 package com.analysys.presto.connector.hbase.utils;
 
 /**
- * 计时器
- * Created by lenovo on 2018/7/11.
+ * Time ticker
+ * Created by wupeng on 2018/1/19.
  */
-public class TimeClicker {
+public class TimeTicker {
 
     private long time;
 
-    public TimeClicker() {
+    public TimeTicker() {
         this.time = System.currentTimeMillis();
     }
 

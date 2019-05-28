@@ -17,7 +17,7 @@ import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.meta.*;
 import com.analysys.presto.connector.hbase.utils.Constant;
-import com.analysys.presto.connector.hbase.utils.TimeClicker;
+import com.analysys.presto.connector.hbase.utils.TimeTicker;
 import com.analysys.presto.connector.hbase.utils.Utils;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorSplitManager;
@@ -124,7 +124,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
             long start = System.currentTimeMillis();
             // create snapshot with retry
             snapshotName = createSnapshotWithRetry(schemaName, tableName, clientManager.getAdmin());
-            createSnapshotTime = TimeClicker.calculateTimeTo(start);
+            createSnapshotTime = TimeTicker.calculateTimeTo(start);
 
             // get regions from snapshot
             List<HRegionInfo> regions = Utils.getRegionInfos(config.getHbaseZookeeperQuorum(),

@@ -21,7 +21,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * HBase clientSideRegionScanner.
- * Don't jump young blood.
  * Thunder go ahead!
  * Created by wupeng on 2018/1/19.
  */
@@ -45,7 +44,6 @@ class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
         try {
             if (scanner != null)
                 this.iterator = scanner.iterator();
-
             this.connection = connection;
         } catch (Exception ex) {
             log.error(ex, ex.getMessage());
@@ -61,11 +59,11 @@ class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {
                 InetAddress localhost = InetAddress.getLocalHost();
                 // random print
                 if (System.currentTimeMillis() % Constant.SYSTEMOUT_INTERVAL >= 0)
-                    log.info("SCAN RECORD. advanceNextPosition: tableName=" + split.getTableName() + ", startRow=" + split.getStartRow()
-                            + ", endRow=" + split.getEndRow() + ". READ_DATA_TIME="
-                            + (System.currentTimeMillis() - startTime) + " mill secs. recordCount=" + recordCount
-                            + ", startTime=" + new Date(startTime).toString() + ", localhost=" + localhost.getHostAddress()
-                            + ", 指定运行的节点ip: "
+                    log.info("SCAN RECORD. advanceNextPosition: tableName=" + split.getTableName()
+                            + ", startRow=" + split.getStartRow() + ", endRow=" + split.getEndRow()
+                            + ". READ_DATA_TIME=" + (System.currentTimeMillis() - startTime)
+                            + " mill secs. recordCount=" + recordCount + ", startTime=" + new Date(startTime).toString()
+                            + ", localhost=" + localhost.getHostAddress() + ", 指定运行的节点ip: "
                             + (split.getAddresses().size() > 0 ? split.getAddresses().get(0).toString() : ""));
                 return false;
             } else {
