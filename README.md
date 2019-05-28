@@ -313,6 +313,8 @@ ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Clien
 
   如果所有表都要使用ClientSide查询，可以配置成*。
 
+打包时需要将hadoop的core-site.xml和hdfs-site.xml两个配置文件拷贝到src/main/resources目录下
+
 ClientSideRegionScanner的查询是依赖Snapshot的，所以为了查询能获取到最新的数据，每次查询时都会自动创建一个命名规则如下的Snapshot：
 
 ```
