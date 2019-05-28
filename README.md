@@ -313,9 +313,9 @@ ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Clien
 
   如果所有表都要使用ClientSide查询，可以配置成*。
 
-打包时需要将hadoop的core-site.xml和hdfs-site.xml两个配置文件拷贝到src/main/resources目录下
+除以上三个参数之外，打包时还需要将运行环境中hadoop的core-site.xml和hdfs-site.xml两个配置文件拷贝到project的src/main/resources目录下
 
-ClientSideRegionScanner的查询是依赖Snapshot的，所以为了查询能获取到最新的数据，每次查询时都会自动创建一个命名规则如下的Snapshot：
+需要注意的是，ClientSideRegionScanner的查询是依赖Snapshot的，所以为了查询能获取到最新的数据，每次查询时都会自动创建一个命名规则如下的Snapshot：
 
 ```
 "ss-" + schemaName + "." + tableName + "-" + System.nanoTime()
@@ -325,7 +325,9 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 ## 问题解决
 
-##### 1.ClientSideRegionScanner与Snappy压缩格式的集成
+##### 1.如何让ClientSideRegionScanner可以查询Snappy压缩格式的HBase表？
+
+你需要解决以下几个问题：
 
 ###### 1) SnappyCodec找不到的问题
 
@@ -387,7 +389,9 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 或者使用shade来解决这类jar包冲突的问题。
 
-##### 2.ClientSideRegionScanner本地debug查询SNAPPY压缩格式的hbase表报错的问题。
+##### 2.如何在Idea中debug开发ClientSideRegionScanner查询以Snappy格式进行压缩的HBase表？
+
+你需要解决以下几个问题：
 
 ###### 1) 找不到类CanUnbuff
 
