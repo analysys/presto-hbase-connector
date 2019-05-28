@@ -94,7 +94,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         }
         // normal scan
         else {
-            splits = getSplitsForScan(conditions, tableMetaInfo, schemaName, tableName);
+            splits = getSplitsForScan(conditions, tableMetaInfo);
         }
 
         log.info("The final split count is " + splits.size() + ".");
@@ -115,7 +115,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
      */
     private List<HBaseSplit> getSplitsForClientSide(String schemaName, String tableName,
                                                     List<ConditionInfo> conditions, String rowKeyName) {
-        log.info("ClientSideScan:" + schemaName + ":" + tableName);
+        log.info("ClientSideRegionScanner:" + schemaName + ":" + tableName);
         int hostIndex = 0;
         long createSnapshotTime = 0;
         List<HBaseSplit> splits = new ArrayList<>();
@@ -215,13 +215,13 @@ public class HBaseSplitManager implements ConnectorSplitManager {
      *
      * @param conditions    conditions
      * @param tableMetaInfo tableMetaInfo
-     * @param schemaName    schema name
-     * @param tableName     table name
      * @return splits
      */
     private List<HBaseSplit> getSplitsForScan(List<ConditionInfo> conditions,
-                                              TableMetaInfo tableMetaInfo,
-                                              String schemaName, String tableName) {
+                                              TableMetaInfo tableMetaInfo) {
+        String schemaName = tableMetaInfo.getSchemaName();
+        String tableName = tableMetaInfo.getTableName();
+        log.info("NormalRegionScanner:" + schemaName + ":" + tableName);
         List<HBaseSplit> splits = new ArrayList<>();
         int hostIndex = 0;
         List<String> startKeyList;
@@ -261,6 +261,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
     private List<HBaseSplit> getSplitsForBatchGet(List<ConditionInfo> conditions,
                                                   TableMetaInfo tableMetaInfo,
                                                   HBaseTableHandle tableHandle) {
+        log.info("BatchGet:" + tableMetaInfo.getSchemaName() + ":" + tableMetaInfo.getTableName());
         List<HBaseSplit> splits = new ArrayList<>();
         // Find all conditions of rowKey(rowKey='xxx' or rowKey in('xxx','xxx'))
         List<ConditionInfo> rowKeys = conditions.stream().filter(cond ->
