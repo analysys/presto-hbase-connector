@@ -291,6 +291,8 @@ ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Clien
 
 ![ClientSide&NormalScanner.png](https://github.com/analysys/presto-hbase-connector/blob/dev_0.1.1/imgs/ClientSide-NormalScanner.png?raw=true)
 
+详细测试结果参见：https://github.com/analysys/public-docs/blob/master/Attachment6(Presto-HBase-Connector-PerformanceTesting-ClientSide).xlsx
+
 使用ClientSide查询需要设置以下三个参数：
 
 * hbase-rootdir
