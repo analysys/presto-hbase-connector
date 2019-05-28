@@ -6,11 +6,11 @@
 
 ## 性能对比
 
-| 环境   | 明细                        |
-| ------ | --------------------------- |
-| 数据量 | 事件表500万条数据，90个字段 |
-| 节点数 | 3                           |
-| 硬件   | 16逻辑核 64G内存 4T*2硬盘   |
+| 环境   | 明细                                                         |
+| ------ | ------------------------------------------------------------ |
+| 数据量 | 事件表500万条数据，90个字段                                  |
+| 节点数 | 3                                                            |
+| 硬件   | 16逻辑核 64G内存（其中presto和RegionServer各占16G内存） 4T*2硬盘 |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
@@ -24,7 +24,7 @@
 | 拼接StartKey/EndKey | 支持         | 不支持 |
 | 批量Get查询         | 支持         | 不支持 |
 | 谓词下推（Filter）  | 支持         | 不支持 |
-| ClientSideScan      | 商业版已实现 | 不支持 |
+| ClientSideScan      | 商业版已实现 | 支持   |
 | Insert              | 后续支持     | 支持   |
 | Delete              | 后续支持     | 支持   |
 | 建表语句            | 后续支持     | 支持   |
