@@ -389,6 +389,9 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 或者使用shade来解决这类jar包冲突的问题。
 
+###### 6）Caused by: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.security.AccessControlException): Permission denied: user=presto, access=WRITE, inode="/apps/hbase/data/data/db_moredatatest/multifamily_90cq_7cf_500w_snappy2/dee9b34c5cd8ee34f74ff5fc5446432a/.tmp":hbase:hdfs:drwxr-xr-x
+权限不足，因为hbase对自身的数据文件权限都是hbase用户之下，而我们通过presto查询使用的是presto用户，需要给presto用户授予读取权限。
+
 ##### 2.如何在Idea中debug开发ClientSideRegionScanner查询以Snappy格式进行压缩的HBase表？
 
 你需要解决以下几个问题：
