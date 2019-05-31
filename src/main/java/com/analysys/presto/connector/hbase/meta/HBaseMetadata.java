@@ -20,10 +20,12 @@ import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import io.airlift.log.Logger;
 import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 
+import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.analysys.presto.connector.hbase.utils.Types.checkType;
 import static java.util.Objects.requireNonNull;
@@ -35,6 +37,7 @@ import static java.util.Objects.requireNonNull;
  * @date 2019/01/29
  */
 public class HBaseMetadata implements ConnectorMetadata {
+    private static final Logger log = Logger.get(HBaseMetadata.class);
 
     private final HBaseConnectorId connectorId;
     private final HBaseTables hbaseTables;
@@ -112,12 +115,9 @@ public class HBaseMetadata implements ConnectorMetadata {
     @Override
     public List<SchemaTableName> listTables(ConnectorSession connectorSession, String schema) {
         Admin admin = hbaseClientManager.getAdmin();
-        List<SchemaTableName> schemaTableNames = null;
+        List<SchemaTableName> schemaTableNames;
         try {
-            schemaTableNames = hbaseTables.getTables(admin, schema)
-                    .keySet()
-                    .stream()
-                    .collect(Collectors.toList());
+            schemaTableNames = new ArrayList<>(hbaseTables.getTables(admin, schema).keySet());
         } finally {
             if (admin != null) {
                 hbaseClientManager.close(admin);
@@ -183,6 +183,30 @@ public class HBaseMetadata implements ConnectorMetadata {
         String schema = handle.getSchemaTableName().getSchemaName();
         String tableName = handle.getSchemaTableName().getTableName();
         hbaseTables.dropTable(schema, tableName);
+    }
+
+    /**
+     * create snapshot
+     * @param snapshotName snapshot name
+     * @param admin admin
+     * @param schemaName schema name
+     * @param tableName table name
+     * @throws IOException io exception
+     */
+    public static void createSnapshot(String snapshotName,
+                               Admin admin,
+                               String schemaName,
+                               String tableName) throws IOException {
+        long start = System.currentTimeMillis();
+        HBaseProtos.SnapshotDescription snapshot = HBaseProtos.SnapshotDescription.newBuilder()
+                .setName(snapshotName)
+                .setTable(schemaName + ":" + tableName)
+                .setType(HBaseProtos.SnapshotDescription.Type.FLUSH)
+                        // .setType(HBaseProtos.SnapshotDescription.Type.DISABLED)
+                .build();
+        admin.snapshot(snapshot);
+        log.info("createSnapshot: create snapshot " + snapshotName
+                + " used " + (System.currentTimeMillis() - start) + " mill seconds.");
     }
 
 }

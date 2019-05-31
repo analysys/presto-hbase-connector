@@ -33,12 +33,11 @@ public class HBaseTable {
     public static final Logger logger = Logger.get(HBaseTable.class);
 
     private final HTableDescriptor hTableDescriptor;
-    private final String schemaName;
     private final List<ColumnMetadata> columnsMetadata;
 
     public HBaseTable(String schemaName, HTableDescriptor tabDesc, HBaseConfig config) {
         this.hTableDescriptor = Objects.requireNonNull(tabDesc, "tabDesc is null");
-        this.schemaName = Objects.requireNonNull(schemaName, "schemaName is null");
+        Objects.requireNonNull(schemaName, "schemaName is null");
         ImmutableList<ColumnMetadata> tableMeta = null;
         try {
             String tableName = tabDesc.getNameAsString() != null && tabDesc.getNameAsString().contains(":") ?
@@ -58,15 +57,8 @@ public class HBaseTable {
         return this.hTableDescriptor.getNameAsString();
     }
 
-    public String getTableSchemaName() {
-        return this.schemaName;
-    }
-
-    public List<ColumnMetadata> getColumnsMetadata() {
+    List<ColumnMetadata> getColumnsMetadata() {
         return this.columnsMetadata;
     }
 
-    public String getRegions() {
-        return this.hTableDescriptor.getRegionSplitPolicyClassName();
-    }
 }

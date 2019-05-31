@@ -15,23 +15,28 @@ package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
-import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
+import com.analysys.presto.connector.hbase.meta.HBaseConfig;
 import com.analysys.presto.connector.hbase.schedule.ConditionInfo;
+import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
 import com.analysys.presto.connector.hbase.utils.Utils;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.RecordCursor;
 import com.facebook.presto.spi.RecordSet;
 import com.facebook.presto.spi.type.Type;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import io.airlift.log.Logger;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.HRegionInfo;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
+import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
+import org.apache.hadoop.hbase.snapshot.SnapshotDescriptionUtils;
+import org.apache.hadoop.hbase.snapshot.SnapshotManifest;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,25 +58,21 @@ public class HBaseRecordSet implements RecordSet {
     private final List<Type> columnTypes;
     private final HBaseSplit hBaseSplit;
     private ResultScanner resultScanner;
-
-    private Connection connection = null;
-
+    private Connection connection;
     private Map<Integer, HBaseColumnHandle> fieldIndexMap = new HashMap<>();
+    private HBaseConfig config;
 
-    public HBaseRecordSet(HBaseSplit split, List<ColumnHandle> columnHandles, HBaseClientManager clientManager) {
-        Objects.requireNonNull(split, "split is null");
+    HBaseRecordSet(HBaseSplit split, List<ColumnHandle> columnHandles, HBaseClientManager clientManager) {
+        this.hBaseSplit = Objects.requireNonNull(split, "split is null");
         Objects.requireNonNull(clientManager, "clientManager is null");
+        this.config = clientManager.getConfig();
+
         Objects.requireNonNull(columnHandles, "column handles is null");
-        this.hBaseSplit = split;
         this.columnHandles = columnHandles.stream().map(ch -> (HBaseColumnHandle) ch).collect(Collectors.toList());
         this.initFieldIndexMap(this.columnHandles);
 
-        Builder<Type> types = ImmutableList.builder();
-        for (Object obj : columnHandles) {
-            HBaseColumnHandle column = (HBaseColumnHandle) obj;
-            types.add(column.getColumnType());
-        }
-        this.columnTypes = types.build();
+        this.columnTypes = columnHandles.stream().map(ch -> ((HBaseColumnHandle) ch).getColumnType())
+                .collect(Collectors.toList());
 
         this.connection = clientManager.createConnection();
     }
@@ -90,6 +91,40 @@ public class HBaseRecordSet implements RecordSet {
             if (Utils.isBatchGet(this.hBaseSplit.getConstraint(), hBaseSplit.getRowKeyName())) {
                 return new HBaseGetRecordCursor(this.columnHandles,
                         this.hBaseSplit, this.fieldIndexMap, this.connection);
+            }
+            // client side region scanner
+            else if (this.hBaseSplit.getRegionInfo() != null) {
+                Scan scan = getScanFromPrestoConstraint();
+                long startTime = System.currentTimeMillis();
+                Configuration conf = Utils.getHadoopConf(config.getHbaseZookeeperQuorum(), config.getZookeeperClientPort());
+                Path root = new Path(config.getHbaseRootDir());
+                FileSystem fs = FileSystem.get(conf);
+                Path snapshotDir = SnapshotDescriptionUtils.getCompletedSnapshotDir(hBaseSplit.getSnapshotName(), root);
+                HBaseProtos.SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
+                SnapshotManifest manifest = SnapshotManifest.open(conf, fs, snapshotDir, snapshotDesc);
+                List<HRegionInfo> regionInfos = Utils.getRegionInfosFromManifest(manifest);
+                HTableDescriptor htd = manifest.getTableDescriptor();
+                ClientSideRegionScanner scanner;
+                try {
+                    scanner = new ClientSideRegionScanner(conf, fs, root, htd, regionInfos.get(hBaseSplit.getRegionIndex()), scan, null);
+                } catch (AlreadyBeingCreatedException abce) {
+                    log.error(abce, "E-3-1: " + abce.getMessage());
+                    scanner = createClientSideRegionScannerWithExceptionHandle(conf, fs, root, htd, regionInfos.get(hBaseSplit.getRegionIndex()), scan);
+                } catch (org.apache.hadoop.ipc.RemoteException re) {
+                    log.error(re, "E-3-2: " + re.getMessage());
+                    scanner = createClientSideRegionScannerWithExceptionHandle(conf, fs, root, htd, regionInfos.get(hBaseSplit.getRegionIndex()), scan);
+                } catch (Exception e) {
+                    log.error(e, "E-3-3: " + e.getMessage());
+                    scanner = createClientSideRegionScannerWithExceptionHandle(conf, fs, root, htd, regionInfos.get(hBaseSplit.getRegionIndex()), scan);
+                }
+                if (scanner == null) {
+                    log.error("ClientSideRegionScanner: Create scanner failed!");
+                }
+                // log.info("RegionIndex=" + hBaseSplit.getRegionIndex() + ", 获取regionInfo，耗时：" + (System.currentTimeMillis() - startTime) + " 毫秒。");
+                log.info("Get regionInfo by regionIndex{ " + hBaseSplit.getRegionIndex()
+                        + " }, used " + (System.currentTimeMillis() - startTime) + " mill seconds.");
+                return new HBaseScanRecordCursorClientSide(this.columnHandles,
+                        this.hBaseSplit, scanner, this.fieldIndexMap, connection);
             }
             // Normal scan
             else {
@@ -121,12 +156,20 @@ public class HBaseRecordSet implements RecordSet {
         }*/
     }
 
+    private ClientSideRegionScanner createClientSideRegionScannerWithExceptionHandle(
+            Configuration conf, FileSystem fs, Path root, HTableDescriptor htd,
+            HRegionInfo regionInfo, Scan scan) {
+        try {
+            return new ClientSideRegionScanner(conf, fs, root, htd, regionInfo, scan, null);
+        } catch (Exception e) {
+            log.error(e, "E-3-4 Create ClientSideRegionScanner failed! Track is : " + e.getMessage());
+            return null;
+        }
+    }
+
     private Filter getFilter(ConditionInfo condition) {
         CompareFilter.CompareOp operator;
         switch (condition.getOperator()) {
-            case EQ:
-                operator = CompareFilter.CompareOp.EQUAL;
-                break;
             case GT:
                 operator = CompareFilter.CompareOp.GREATER;
                 break;
@@ -170,9 +213,14 @@ public class HBaseRecordSet implements RecordSet {
         // Filter the exactly columns we want
         // for (HBaseColumnHandle hch : this.columnHandles) {
         this.columnHandles.forEach(hch -> {
-            if (!this.hBaseSplit.getRowKeyName().equals(hch.getColumnName())) {
+            if (this.hBaseSplit.getRowKeyName() == null) {
                 scan.addColumn(
                         Bytes.toBytes(hch.getFamily()), Bytes.toBytes(hch.getColumnName()));
+            } else {
+                if (!this.hBaseSplit.getRowKeyName().equals(hch.getColumnName())) {
+                    scan.addColumn(
+                            Bytes.toBytes(hch.getFamily()), Bytes.toBytes(hch.getColumnName()));
+                }
             }
         });
 
