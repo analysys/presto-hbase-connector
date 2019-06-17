@@ -37,6 +37,7 @@ public class HBaseConfig {
     private String prestoWorkersIp;
     private String prestoWorkersName;
     private int prestoServerPort;
+    private String zookeeperZnodeParent;
     /**
      * Can we random schedule redundant split
      */
@@ -127,6 +128,11 @@ public class HBaseConfig {
         this.prestoWorkersIp = prestoWorkersIp;
     }
 
+    @Config("zookeeper-znode-parent")
+    public void setZookeeperZnodeParent(String zookeeperZnodeParent) {
+        this.zookeeperZnodeParent = zookeeperZnodeParent;
+    }
+
     @NotNull
     public String getHbaseZookeeperQuorum() {
         return this.hbaseZookeeperQuorum;
@@ -135,6 +141,11 @@ public class HBaseConfig {
     @NotNull
     public String getZookeeperClientPort() {
         return this.zookeeperClientPort;
+    }
+
+    @NotNull
+    public String getZookeeperZnodeParent() {
+        return this.zookeeperZnodeParent;
     }
 
     public String getHbaseIsDistributed() {
