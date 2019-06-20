@@ -26,6 +26,7 @@ import org.apache.hadoop.hbase.client.Admin;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -45,7 +46,7 @@ public class HBaseTables {
         this.hbaseClientManager = hbaseClientManager;
     }
 
-    public Map<SchemaTableName, HBaseTableHandle> getTables(Admin admin, String schema) {
+    Map<SchemaTableName, HBaseTableHandle> getTables(Admin admin, String schema) {
         Map<SchemaTableName, HBaseTableHandle> tables;
         try {
             ImmutableMap.Builder<SchemaTableName, HBaseTableHandle> tablesBuilder = ImmutableMap.builder();
@@ -59,6 +60,8 @@ public class HBaseTables {
                 } else {
                     tableName = table.getNameAsString();
                 }
+
+                Objects.requireNonNull(tableName, "tableName cannot be null!");
                 SchemaTableName schemaTableName = new SchemaTableName(schema, tableName);
 
                 tablesBuilder.put(schemaTableName, new HBaseTableHandle(schemaTableName));
@@ -71,7 +74,7 @@ public class HBaseTables {
         return null;
     }
 
-    public Set<String> getSchemaNames() {
+    Set<String> getSchemaNames() {
         NamespaceDescriptor[] namespaceDescriptors = new NamespaceDescriptor[0];
         Admin admin = null;
         try {
