@@ -15,6 +15,7 @@ package com.analysys.presto.connector.hbase.meta;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
+import com.analysys.presto.connector.hbase.utils.Constant;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.google.common.collect.ImmutableList;
@@ -187,22 +188,30 @@ public class HBaseMetadata implements ConnectorMetadata {
 
     /**
      * create snapshot
+     *
      * @param snapshotName snapshot name
-     * @param admin admin
-     * @param schemaName schema name
-     * @param tableName table name
+     * @param admin        admin
+     * @param schemaName   schema name
+     * @param tableName    table name
      * @throws IOException io exception
      */
     public static void createSnapshot(String snapshotName,
-                               Admin admin,
-                               String schemaName,
-                               String tableName) throws IOException {
+                                      Admin admin,
+                                      String schemaName,
+                                      String tableName) throws IOException {
         long start = System.currentTimeMillis();
+        String fullTableName;
+        if (Constant.HBASE_NAMESPACE_DEFAULT.equals(schemaName)
+                || "".equals(schemaName)) {
+            fullTableName = tableName;
+        } else {
+            fullTableName = schemaName + ":" + tableName;
+        }
         HBaseProtos.SnapshotDescription snapshot = HBaseProtos.SnapshotDescription.newBuilder()
                 .setName(snapshotName)
-                .setTable(schemaName + ":" + tableName)
+                .setTable(fullTableName)
                 .setType(HBaseProtos.SnapshotDescription.Type.FLUSH)
-                        // .setType(HBaseProtos.SnapshotDescription.Type.DISABLED)
+                // .setType(HBaseProtos.SnapshotDescription.Type.DISABLED)
                 .build();
         admin.snapshot(snapshot);
         log.info("createSnapshot: create snapshot " + snapshotName

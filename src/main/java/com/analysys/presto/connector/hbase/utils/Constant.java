@@ -76,4 +76,6 @@ public interface Constant {
 
     static final String ROWKEY_TAIL = "|";
 
+    public static final String HBASE_NAMESPACE_DEFAULT = "default";
+
 }

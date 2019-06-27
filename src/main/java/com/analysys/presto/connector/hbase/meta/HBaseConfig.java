@@ -57,7 +57,7 @@ public class HBaseConfig {
 
     private String hbaseRootDir;
 
-    private boolean enableClientSideScan = true;
+    private boolean enableClientSideScan = false;
 
     /**
      * Table names that using ClientSideRegionScanner to do query operation.
@@ -66,6 +66,7 @@ public class HBaseConfig {
      */
     private String clientSideQueryModeTableNames;
 
+    @NotNull
     /**
      * create snapshot retry times
      */
@@ -178,7 +179,6 @@ public class HBaseConfig {
         return prestoServerPort;
     }
 
-    @NotNull
     public String getHbaseRootDir() {
         return hbaseRootDir;
     }
