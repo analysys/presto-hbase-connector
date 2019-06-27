@@ -38,6 +38,7 @@ public class HBaseConfig {
     private String prestoWorkersName;
     private int prestoServerPort;
     private String zookeeperZnodeParent;
+
     /**
      * Can we random schedule redundant split
      */
@@ -53,6 +54,22 @@ public class HBaseConfig {
      *   --table_C.json
      */
     private String metaDir;
+
+    private String hbaseRootDir;
+
+    private boolean enableClientSideScan = true;
+
+    /**
+     * Table names that using ClientSideRegionScanner to do query operation.
+     * namespace_1:tableName_1,namespace_2:tableName_2,namespace_2:tableName_3
+     * Set * if all tables are using ClientSideRegionScanner
+     */
+    private String clientSideQueryModeTableNames;
+
+    /**
+     * create snapshot retry times
+     */
+    private int createSnapshotRetryTimes = 15;
 
     @NotNull
     public String getMetaDir() {
@@ -161,6 +178,43 @@ public class HBaseConfig {
         return prestoServerPort;
     }
 
+    @NotNull
+    public String getHbaseRootDir() {
+        return hbaseRootDir;
+    }
+
+    @Config("hbase-rootdir")
+    public void setHbaseRootDir(String hbaseRootDir) {
+        this.hbaseRootDir = hbaseRootDir;
+    }
+
+    public boolean isEnableClientSideScan() {
+        return enableClientSideScan;
+    }
+
+    @Config("enable-clientSide-scan")
+    public void setEnableClientSideScan(boolean enableClientSideScan) {
+        this.enableClientSideScan = enableClientSideScan;
+    }
+
+    public String getClientSideQueryModeTableNames() {
+        return clientSideQueryModeTableNames;
+    }
+
+    @Config("clientside-querymode-tablenames")
+    public void setClientSideQueryModeTableNames(String clientSideQueryModeTableNames) {
+        this.clientSideQueryModeTableNames = clientSideQueryModeTableNames;
+    }
+
+    public int getCreateSnapshotRetryTimes() {
+        return createSnapshotRetryTimes;
+    }
+
+    @Config("clientside-createsnapshot-retrytimes")
+    public void setCreateSnapshotRetryTimes(int createSnapshotRetryTimes) {
+        this.createSnapshotRetryTimes = createSnapshotRetryTimes;
+    }
+
     @Override
     public String toString() {
         return "HBaseConfig{" +
@@ -172,6 +226,7 @@ public class HBaseConfig {
                 ", prestoServerPort=" + prestoServerPort +
                 ", randomScheduleRedundantSplit=" + randomScheduleRedundantSplit +
                 ", metaDir='" + metaDir + '\'' +
+                ", createSnapshotRetryTimes='" + createSnapshotRetryTimes + '\'' +
                 '}';
     }
 

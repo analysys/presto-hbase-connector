@@ -17,6 +17,7 @@ import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.HostAddress;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.hadoop.hbase.HRegionInfo;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,26 +39,36 @@ public class HBaseSplit implements ConnectorSplit {
     private final String endRow;
     private final List<ConditionInfo> constraint;
     private final String rowKeyName;
+    private final Integer regionIndex;
+    private final HRegionInfo regionInfo;
+    private final String snapshotName;
 
     @JsonCreator
     public HBaseSplit(@JsonProperty("connectorId") String connectorId,
-               @JsonProperty("schemaName") String schemaName,
-               @JsonProperty("tableName") String tableName,
-               @JsonProperty("rowKeyName") String rowKeyName,
-               @JsonProperty("addresses") List<HostAddress> addresses,
-               @JsonProperty("startRow") String startRow,
-               @JsonProperty("endRow") String endRow,
-               @JsonProperty("constraint") List<ConditionInfo> constraint,
-               @JsonProperty("randomScheduleRedundantSplit") boolean randomScheduleRedundantSplit) {
+                      @JsonProperty("schemaName") String schemaName,
+                      @JsonProperty("tableName") String tableName,
+                      @JsonProperty("rowKeyName") String rowKeyName,
+                      @JsonProperty("addresses") List<HostAddress> addresses,
+                      @JsonProperty("startRow") String startRow,
+                      @JsonProperty("endRow") String endRow,
+                      @JsonProperty("constraint") List<ConditionInfo> constraint,
+                      @JsonProperty("randomScheduleRedundantSplit") boolean randomScheduleRedundantSplit,
+                      @JsonProperty("regionIndex") Integer regionIndex,
+                      @JsonProperty("regionInfo") HRegionInfo regionInfo,
+                      @JsonProperty("snapshotName") String snapshotName) {
         this.schemaName = Objects.requireNonNull(schemaName, "schema name is null");
         this.connectorId = Objects.requireNonNull(connectorId, "connector id is null");
         this.tableName = Objects.requireNonNull(tableName, "table name is null");
-        this.rowKeyName = Objects.requireNonNull(rowKeyName, "row key name is null");
+        // this.rowKeyName = Objects.requireNonNull(rowKeyName, "row key name is null");
+        this.rowKeyName = rowKeyName;
         this.addresses = addresses;
         this.randomScheduleRedundantSplit = randomScheduleRedundantSplit;
         this.startRow = startRow;
         this.endRow = endRow;
         this.constraint = constraint;
+        this.regionIndex = regionIndex;
+        this.regionInfo = regionInfo;
+        this.snapshotName = snapshotName;
     }
 
     @JsonProperty
@@ -111,6 +122,21 @@ public class HBaseSplit implements ConnectorSplit {
         return constraint;
     }
 
+    @JsonProperty
+    public Integer getRegionIndex() {
+        return regionIndex;
+    }
+
+    @JsonProperty
+    public HRegionInfo getRegionInfo() {
+        return regionInfo;
+    }
+
+    @JsonProperty
+    public String getSnapshotName() {
+        return snapshotName;
+    }
+
     @Override
     public String toString() {
         return "HBaseSplit{" +
@@ -119,6 +145,7 @@ public class HBaseSplit implements ConnectorSplit {
                 ", tableName='" + tableName + '\'' +
                 ", startRow='" + startRow + '\'' +
                 ", endRow='" + endRow + '\'' +
+                ", regionInfo=" + (regionInfo != null ? regionInfo.toString() : "null") +
                 '}';
     }
 

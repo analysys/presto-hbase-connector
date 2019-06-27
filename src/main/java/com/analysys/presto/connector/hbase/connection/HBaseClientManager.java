@@ -130,4 +130,7 @@ public class HBaseClientManager {
         }
     }
 
+    public HBaseConfig getConfig() {
+        return config;
+    }
 }
