@@ -61,7 +61,8 @@ public class HBaseClientManager {
             //  RPC fail retry times
             conf.set("hbase.client.retries.number", "3");
 
-            conf.set("zookeeper.znode.parent", "/hbase");
+            //conf.set("zookeeper.znode.parent", "/hbase");
+			conf.set("zookeeper.znode.parent", config.getZookeeperZnodeParent());
 
             // set this param a bigger value to avoid SocketTimeoutException when you invoke scanner.next()
             conf.set("hbase.client.scanner.timeout.period", "90000");

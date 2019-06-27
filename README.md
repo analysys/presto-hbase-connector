@@ -54,6 +54,7 @@ mvn clean package
 connector.name=hbase
 zookeeper-quorum=localhost:2181
 zookeeper-client-port=2181
+zookeeper-znode-parent=/hbase
 hbase-cluster-distributed=true
 presto-server-port=8285
 random-schedule-redundant-split=false
