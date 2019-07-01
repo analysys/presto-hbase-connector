@@ -71,6 +71,7 @@ public interface Constant {
     static final String JSON_TABLEMETA_FAMILY = "family";
     static final String JSON_TABLEMETA_COLUMNNAME = "columnName";
     static final String JSON_TABLEMETA_TYPE = "type";
+    static final String JSON_TABLEMETA_ISROWKEY = "isRowKey";
 
     static final String JSON_ENCODING_UTF8 = "UTF-8";
 

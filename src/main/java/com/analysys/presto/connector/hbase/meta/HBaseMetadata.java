@@ -16,19 +16,26 @@ package com.analysys.presto.connector.hbase.meta;
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.utils.Constant;
+import com.analysys.presto.connector.hbase.utils.Utils;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
+import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
+import com.facebook.presto.spi.type.Type;
+import com.facebook.presto.spi.type.VarcharType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import io.airlift.log.Logger;
+import io.airlift.slice.Slice;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 
 import java.io.IOException;
 import java.util.*;
 
+import static com.analysys.presto.connector.hbase.utils.Constant.*;
 import static com.analysys.presto.connector.hbase.utils.Types.checkType;
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -143,7 +150,7 @@ public class HBaseMetadata implements ConnectorMetadata {
                 columnHandles.put(column.getName(),
                         new HBaseColumnHandle(
                                 connectorId.getId(), column.getFamily(), column.getName(),
-                                column.getType(), index));
+                                column.getType(), index, column.isIsRowKey()));
             }
             return columnHandles.build();
         }
@@ -217,6 +224,105 @@ public class HBaseMetadata implements ConnectorMetadata {
         log.info("createSnapshot: create snapshot " + snapshotName
                 + " used " + (System.currentTimeMillis() - start) + " mill seconds.");
     }
+
+    // ----------------------------------- start insert -----------------------------------
+    @Override
+    public ConnectorInsertTableHandle beginInsert(ConnectorSession session, ConnectorTableHandle connectorTableHandle) {
+        HBaseTableHandle tableHandle = fromConnectorTableHandle(connectorTableHandle);
+        String schemaName = tableHandle.getSchemaTableName().getSchemaName();
+        String tableName = tableHandle.getSchemaTableName().getTableName();
+        try {
+            TableMetaInfo tableMetaInfo = Utils.getTableMetaInfoFromJson(schemaName, tableName,
+                    this.hbaseClientManager.getConfig().getMetaDir());
+            requireNonNull(tableMetaInfo,
+                    String.format("The metadata of table %s.%s is null", schemaName, tableName));
+
+            List<ColumnMetaInfo> cols = tableMetaInfo.getColumns();
+            List<String> columnNames = new ArrayList<>(cols.size());
+            List<Type> columnTypes = new ArrayList<>(cols.size());
+            Map<String, String> colNameAndFamilyNameMap = new HashMap<>();
+            for (ColumnMetaInfo col : cols) {
+                columnNames.add(col.getColumnName());
+                columnTypes.add(Utils.matchType(col.getType()));
+                colNameAndFamilyNameMap.put(col.getColumnName(), col.getFamily());
+            }
+            int rowKeyColumnChannel = this.findRowKeyChannel(tableMetaInfo.getColumns());
+            return new HBaseInsertTableHandle(
+                    connectorId.getId(),
+                    tableHandle.getSchemaTableName(),
+                    columnNames,
+                    columnTypes,
+                    rowKeyColumnChannel,
+                    colNameAndFamilyNameMap);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        return null;
+    }
+
+    private int findRowKeyChannel(List<ColumnMetaInfo> columns) {
+        for (int i = 0; i < columns.size(); i++) {
+            if (columns.get(i).isIsRowKey()) {
+                return i;
+            }
+        }
+        // Table must specify rowKey column's name.
+        // So it's impossible to be here.
+        return -1;
+    }
+
+    @Override
+    public Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session,
+                                                          ConnectorInsertTableHandle insertHandle,
+                                                          Collection<Slice> fragments) {
+        return Optional.empty();
+    }
+
+    private HBaseTableHandle fromConnectorTableHandle(ConnectorTableHandle tableHandle) {
+        return checkType(tableHandle, HBaseTableHandle.class, "tableHandle");
+    }
+    // ----------------------------------- end insert -----------------------------------
+
+    // --------------- support delete function start ---------------
+    @Override
+    public ColumnHandle getUpdateRowIdColumnHandle(ConnectorSession session, ConnectorTableHandle tableHandle) {
+        HBaseTableHandle hth = (HBaseTableHandle) tableHandle;
+        String schemaName = hth.getSchemaTableName().getSchemaName();
+        String tableName = hth.getSchemaTableName().getTableName();
+
+        TableMetaInfo tableMetaInfo = Utils.getTableMetaInfoFromJson(schemaName, tableName,
+                this.hbaseClientManager.getConfig().getMetaDir());
+        requireNonNull(tableMetaInfo, String.format("Table %s.%s has no metadata, please check .json file under %s",
+                schemaName, tableName, hbaseClientManager.getConfig().getMetaDir() + "/" + schemaName));
+
+        Optional<ColumnMetaInfo> rowKeyOpt = tableMetaInfo.getColumns().stream().filter(ColumnMetaInfo::isIsRowKey).findFirst();
+        checkArgument(rowKeyOpt.isPresent(),
+                String.format("Table %s.%s has no rowKey! Please check .json file under %s",
+                        schemaName, tableName, hbaseClientManager.getConfig().getMetaDir() + "/" + schemaName));
+
+        ColumnMetaInfo rowKeyInfo = rowKeyOpt.get();
+        // HBaseColumnHandle's attributes cannot be all the same with the REAL rowKey column,
+        // Or there will be a java.lang.IllegalArgumentException: Multiple entries with same value Exception.
+        return new HBaseColumnHandle(CONNECTOR_NAME, /*rowKeyInfo.getFamily(),*/ "",
+                rowKeyInfo.getColumnName(), VarcharType.VARCHAR,
+                tableMetaInfo.getColumns().indexOf(rowKeyOpt.get()),
+                rowKeyInfo.isIsRowKey());
+    }
+
+    @Override
+    public ConnectorTableHandle beginDelete(ConnectorSession session, ConnectorTableHandle tableHandle) {
+        return fromConnectorTableHandle(tableHandle);
+    }
+
+    @Override
+    public void finishDelete(ConnectorSession session, ConnectorTableHandle tableHandle, Collection<Slice> fragments) {
+    }
+
+    @Override
+    public boolean supportsMetadataDelete(ConnectorSession session, ConnectorTableHandle tableHandle, ConnectorTableLayoutHandle tableLayoutHandle) {
+        return false;
+    }
+    // --------------- support delete function end ---------------
 
 }
 

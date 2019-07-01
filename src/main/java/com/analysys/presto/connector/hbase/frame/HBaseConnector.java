@@ -24,6 +24,8 @@ import io.airlift.log.Logger;
 import javax.inject.Inject;
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * HBase connector
  * Created by wupeng on 2018/1/19
@@ -35,16 +37,22 @@ class HBaseConnector implements Connector {
     private final HBaseMetadata metadata;
     private final HBaseSplitManager splitManager;
     private final HBaseRecordSetProvider recordSetProvider;
+    private final ConnectorPageSinkProvider pageSinkProvider;
+    private final ConnectorPageSourceProvider pageSourceProvider;
 
     @Inject
     public HBaseConnector(LifeCycleManager lifeCycleManager,
                           HBaseMetadata metadata,
                           HBaseSplitManager splitManager,
-                          HBaseRecordSetProvider recordSetProvider) {
-        this.lifeCycleManager = Objects.requireNonNull(lifeCycleManager, "lifeCycleManager is null");
-        this.metadata = Objects.requireNonNull(metadata, "metadata is null");
-        this.splitManager = Objects.requireNonNull(splitManager, "splitManager is null");
-        this.recordSetProvider = Objects.requireNonNull(recordSetProvider, "recordSetProvider is null");
+                          HBaseRecordSetProvider recordSetProvider,
+                          ConnectorPageSinkProvider pageSinkProvider,
+                          ConnectorPageSourceProvider pageSourceProvider) {
+        this.lifeCycleManager = requireNonNull(lifeCycleManager, "lifeCycleManager is null");
+        this.metadata = requireNonNull(metadata, "metadata is null");
+        this.splitManager = requireNonNull(splitManager, "splitManager is null");
+        this.recordSetProvider = requireNonNull(recordSetProvider, "recordSetProvider is null");
+        this.pageSinkProvider = requireNonNull(pageSinkProvider, "pageSinkProvider is null");
+        this.pageSourceProvider = requireNonNull(pageSourceProvider, "pageSourceProvider is null");
     }
 
     @Override
@@ -65,6 +73,16 @@ class HBaseConnector implements Connector {
     @Override
     public ConnectorRecordSetProvider getRecordSetProvider() {
         return this.recordSetProvider;
+    }
+
+    @Override
+    public ConnectorPageSinkProvider getPageSinkProvider() {
+        return pageSinkProvider;
+    }
+
+    @Override
+    public ConnectorPageSourceProvider getPageSourceProvider() {
+        return pageSourceProvider;
     }
 
     @Override

@@ -67,16 +67,16 @@ public class UtilsTest {
             "{\"family\": foo, \"columnName\": Bar, \"type\": \"number\"}" +
             "] }");
 
-    Assert.assertArrayEquals(new Object[]{new HBaseColumnMetadata("foo", "Bar", VarcharType.VARCHAR),
-            new HBaseColumnMetadata("foo", "Bar", VarcharType.VARCHAR),
-            new HBaseColumnMetadata("foo", "Bar", IntegerType.INTEGER),
-            new HBaseColumnMetadata("foo", "Bar", BigintType.BIGINT),
-            new HBaseColumnMetadata("foo", "Bar", DoubleType.DOUBLE),
-            new HBaseColumnMetadata("foo", "Bar", BooleanType.BOOLEAN),
-            new HBaseColumnMetadata("foo", "Bar", new ArrayType(VarcharType.VARCHAR)),
-            new HBaseColumnMetadata("foo", "Bar", TimestampType.TIMESTAMP),
-            new HBaseColumnMetadata("foo", "Bar", TimestampType.TIMESTAMP),
-            new HBaseColumnMetadata("foo", "Bar", DecimalType.createDecimalType(DECIMAL_DEFAULT_PRECISION, DECIMAL_DEFAULT_SCALE))
+    Assert.assertArrayEquals(new Object[]{new HBaseColumnMetadata("foo", "Bar", VarcharType.VARCHAR, true),
+            new HBaseColumnMetadata("foo", "Bar", VarcharType.VARCHAR, false),
+            new HBaseColumnMetadata("foo", "Bar", IntegerType.INTEGER, false),
+            new HBaseColumnMetadata("foo", "Bar", BigintType.BIGINT, false),
+            new HBaseColumnMetadata("foo", "Bar", DoubleType.DOUBLE, false),
+            new HBaseColumnMetadata("foo", "Bar", BooleanType.BOOLEAN, false),
+            new HBaseColumnMetadata("foo", "Bar", new ArrayType(VarcharType.VARCHAR), false),
+            new HBaseColumnMetadata("foo", "Bar", TimestampType.TIMESTAMP, false),
+            new HBaseColumnMetadata("foo", "Bar", TimestampType.TIMESTAMP, false),
+            new HBaseColumnMetadata("foo", "Bar", DecimalType.createDecimalType(DECIMAL_DEFAULT_PRECISION, DECIMAL_DEFAULT_SCALE), false)
     }, Utils.getColumnMetaFromJson("a","b","c").toArray());
   }
 }
