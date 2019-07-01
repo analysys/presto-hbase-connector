@@ -101,6 +101,10 @@ meta-dir=/etc/presto/chbase
 
          存放HBase表元数据信息的目录。
 
+* zookeeper-znode-parent
+
+         等同于hbase-site.xml的zookeeper.znode.parent参数。
+         
 ##### 2.配置namespace
 
 完成hbase.properties的配置之后，需要在{meta-dir}目录创建HBase的namespace目录结构
