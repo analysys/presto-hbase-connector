@@ -104,7 +104,7 @@ meta-dir=/etc/presto/chbase
 * zookeeper-znode-parent
 
          等同于hbase-site.xml的zookeeper.znode.parent参数。
-         
+     
 ##### 2.配置namespace
 
 完成hbase.properties的配置之后，需要在{meta-dir}目录创建HBase的namespace目录结构
@@ -208,6 +208,18 @@ mvn clean package
 将构建好的presto0.20-hbase-{version.num}.jar拷贝到该目录下，并同步到所有的worker节点上。
 
 ##### 6.重启presto集群
+
+
+
+## Insert操作
+
+在dev_0.1.1版本支持了写入操作。写入操作需要用户以字段拼接或者固定值的方式，指定数据的row_key。如下：
+
+```sql
+insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1) select '01-test_rowkey' as row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1 from hbase.db_test.test_event_v2 where xwhen=1562057346821;
+
+insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1) select concat('01-', xwho, '-', xwhat, '-', xwhen) as row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1 from hbase.db_test.test_event_v2 where xwhat='login';
+```
 
 
 
