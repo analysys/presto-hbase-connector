@@ -66,7 +66,6 @@ public class HBaseConfig {
      */
     private String clientSideQueryModeTableNames;
 
-    @NotNull
     /**
      * create snapshot retry times
      */

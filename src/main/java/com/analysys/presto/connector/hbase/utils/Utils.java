@@ -19,6 +19,7 @@ import com.analysys.presto.connector.hbase.schedule.ConditionInfo;
 import com.facebook.presto.jdbc.internal.jackson.databind.ObjectMapper;
 import com.facebook.presto.spi.ColumnMetadata;
 import com.facebook.presto.spi.type.*;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.airlift.log.Logger;
@@ -110,13 +111,21 @@ public class Utils {
             String jsonStr = readTableJson(schemaName, tableName, metaDir);
             JSONObject obj = new JSONObject(jsonStr);
             JSONArray cols = obj.getJSONArray(JSON_TABLEMETA_COLUMNES);
+            boolean hasRowKey = false;
             for (int i = 0; i < cols.length(); i++) {
                 JSONObject temp = new JSONObject(cols.getString(i));
                 String family = temp.getString(JSON_TABLEMETA_FAMILY);
                 String columnName = temp.getString(JSON_TABLEMETA_COLUMNNAME);
                 String type = temp.getString(JSON_TABLEMETA_TYPE);
-                columnsMetadata.add(new HBaseColumnMetadata(family, columnName, matchType(type)));
+                boolean isRowKey = temp.getBoolean(JSON_TABLEMETA_ISROWKEY);
+                columnsMetadata.add(new HBaseColumnMetadata(family, columnName, matchType(type), isRowKey));
+                if (isRowKey)  {
+                    hasRowKey = true;
+                }
             }
+            Preconditions.checkState(hasRowKey,
+                    "Table %s.%s doesn't specified ROW_KEY column." +
+                            " Specify ROW_KEY in your .json file.", schemaName, tableName);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
@@ -146,7 +155,7 @@ public class Utils {
      * @param type The type value that configured in json file.
      * @return type in presto
      */
-    private static Type matchType(String type) {
+    public static Type matchType(String type) {
         if (type == null) {
             return VarcharType.VARCHAR;
         }
@@ -184,7 +193,7 @@ public class Utils {
         if (conditions != null) {
             for (ConditionInfo cond : conditions) {
                 if (rowKeyColName.equals(cond.getColName())
-                        && cond.getOperator() == Constant.CONDITION_OPER.EQ) {
+                        && cond.getOperator() == CONDITION_OPER.EQ) {
                     return true;
                 }
             }
@@ -258,6 +267,28 @@ public class Utils {
             logger.error("get region info error: " + ex.getMessage(), ex);
             throw ex;
         }
+    }
+
+    /**
+     * 去掉array<string>中\001分隔的元素前的一个空格
+     * presto查询出来的值是"aaa\001 bbb\001 ccc"，元素之间会带上一个空格
+     *
+     * @param value value
+     * @return string
+     */
+    public static String removeExtraSpaceInArrayString(String value) {
+        StringBuilder buff = new StringBuilder();
+        String[] ss = value.split(ARRAY_STRING_SPLITTER);
+        for (int j = 0; j < ss.length; j++) {
+            String ele = ss[j];
+            if (j > 0) {
+                ele = ele.substring(1, ele.length());
+            } else {
+                buff.append(ARRAY_STRING_SPLITTER);
+            }
+            buff.append(ele);
+        }
+        return buff.toString();
     }
 
 }

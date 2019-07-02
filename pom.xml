@@ -11,7 +11,7 @@
 
 	<groupId>com.analysys.presto</groupId>
 	<artifactId>presto0.20-hbase</artifactId>
-	<version>meta-0.1.1</version>
+	<version>meta-0.1.2</version>
 
 	<!--<description>Presto - HBase Connector</description>
 	<packaging>presto-plugin</packaging>-->
