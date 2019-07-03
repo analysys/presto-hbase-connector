@@ -25,8 +25,8 @@
 | 批量Get查询         | 支持     | 不支持 |
 | 谓词下推（Filter）  | 支持     | 不支持 |
 | ClientSideScan      | 支持     | 支持   |
-| Insert              | 后续支持 | 支持   |
-| Delete              | 后续支持 | 支持   |
+| Insert              | 支持 | 支持   |
+| Delete              | 支持 | 支持   |
 | 建表语句            | 后续支持 | 支持   |
 
 
