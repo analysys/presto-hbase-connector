@@ -221,6 +221,14 @@ insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwha
 insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1) select concat('01-', xwho, '-', xwhat, '-', xwhen) as row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1 from hbase.db_test.test_event_v2 where xwhat='login';
 ```
 
+## Delete操作
+
+在dev_0.1.1版本支持了删除操作。删除操作不需要用户在sql中指明数据的row_key的值，但是要求所操作的表在定义其元数据的json文件中，必须设置了row_key字段。connector在筛选出所要删除的数据时，会获取到数据的row_key，然后根据row_key的值删除指定的数据。sql示例如下：
+
+```sql
+delete from hbase.db_test.test_event where xwhen >= 1562139516028;
+```
+
 
 
 ## 查询优化
