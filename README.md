@@ -25,8 +25,8 @@
 | 批量Get查询         | 支持     | 不支持 |
 | 谓词下推（Filter）  | 支持     | 不支持 |
 | ClientSideScan      | 支持     | 支持   |
-| Insert              | 后续支持 | 支持   |
-| Delete              | 后续支持 | 支持   |
+| Insert              | 支持     | 支持   |
+| Delete              | 支持     | 支持   |
 | 建表语句            | 后续支持 | 支持   |
 
 
@@ -101,6 +101,10 @@ meta-dir=/etc/presto/chbase
 
          存放HBase表元数据信息的目录。
 
+* zookeeper-znode-parent
+
+         等同于hbase-site.xml的zookeeper.znode.parent参数。
+     
 ##### 2.配置namespace
 
 完成hbase.properties的配置之后，需要在{meta-dir}目录创建HBase的namespace目录结构
@@ -204,6 +208,26 @@ mvn clean package
 将构建好的presto0.20-hbase-{version.num}.jar拷贝到该目录下，并同步到所有的worker节点上。
 
 ##### 6.重启presto集群
+
+
+
+## Insert操作
+
+在dev_0.1.1版本支持了写入操作。写入操作需要用户以字段拼接或者固定值的方式，指定数据的row_key。如下：
+
+```sql
+insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1) select '01-test_rowkey' as row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1 from hbase.db_test.test_event_v2 where xwhen=1562057346821;
+
+insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1) select concat('01-', xwho, '-', xwhat, '-', xwhen) as row_key, xwho, distinct_id, ds, xwhen, xwhat, attri_1 from hbase.db_test.test_event_v2 where xwhat='login';
+```
+
+## Delete操作
+
+在dev_0.1.1版本支持了删除操作。删除操作不需要用户在sql中指明数据的row_key的值，但是要求所操作的表在定义其元数据的json文件中，必须设置了row_key字段。connector在筛选出所要删除的数据时，会获取到数据的row_key，然后根据row_key的值删除指定的数据。sql示例如下：
+
+```sql
+delete from hbase.db_test.test_event where xwhen >= 1562139516028;
+```
 
 
 
@@ -414,3 +438,19 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 ###### 3) 参考“SnappyCodec无法转换为CompressionCodec的问题”部分，修改hbase-common模块的代码，并重新编译更新maven库。其中hbase-shade-client、hbase-shade-server和hbase-common这三个模块必须重新编译。
 
 ###### 4) 在idea的run->Edit Configuration中配置-Djava.library.path到PrestoServer的VM options中。java.library.path就是hadoop的native snappy库路径。
+
+## 更新说明
+
+##### 1. meta-0.1.1
+
+- 支持ClientSide查询功能。
+
+##### 2. meta-0.1.2
+
+- 实现写入和删除的功能。
+- 解决使用ClientSide方式查询default命名空间下的表报错表名不一致的问题。
+- 将参数enable-clientSide-scan默认设置为false。将参数hbase-rootdir的值设置为可空。
+- 增加参数zookeeper-znode-parent。
+
+
+

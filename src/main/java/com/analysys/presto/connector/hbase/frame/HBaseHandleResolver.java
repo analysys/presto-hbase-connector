@@ -13,11 +13,13 @@
  */
 package com.analysys.presto.connector.hbase.frame;
 
+import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
+import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseTableLayoutHandle;
-import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
 import com.facebook.presto.spi.ConnectorHandleResolver;
+import com.facebook.presto.spi.ConnectorInsertTableHandle;
 
 /**
  * HBase handle resolver
@@ -50,6 +52,11 @@ public class HBaseHandleResolver implements ConnectorHandleResolver {
     @Override
     public Class getTransactionHandleClass() {
         return HBaseTransactionHandle.class;
+    }
+
+    @Override
+    public Class<? extends ConnectorInsertTableHandle> getInsertTableHandleClass() {
+        return HBaseInsertTableHandle.class;
     }
 
 }

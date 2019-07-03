@@ -28,7 +28,9 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.SYSTEMOUT_INTERVAL;
@@ -79,6 +81,11 @@ public class HBaseGetRecordCursor extends HBaseRecordCursor {
                     Get get = new Get(Bytes.toBytes(rowKey));
                     for (ColumnHandle ch : columnHandles) {
                         HBaseColumnHandle hch = (HBaseColumnHandle) ch;
+                        // RowKey column has no column family, so we don't need to do get.addColumn() here.
+                        if (this.split.getRowKeyName() != null
+                                && this.split.getRowKeyName().equals(hch.getColumnName())) {
+                            continue;
+                        }
                         get.addColumn(Bytes.toBytes(hch.getFamily()), Bytes.toBytes(hch.getColumnName()));
                     }
                     return get;
@@ -101,7 +108,6 @@ public class HBaseGetRecordCursor extends HBaseRecordCursor {
                 InetAddress localhost = InetAddress.getLocalHost();
                 // Random printing
                 if (System.currentTimeMillis() % SYSTEMOUT_INTERVAL == 0) {
-                    // if (System.currentTimeMillis() % SYSTEMOUT_INTERVAL >= 0)
                     log.info("BATCH GET RECORD. tableName=" + split.getTableName()
                             + ", rowKey_0=" + split.getConstraint().get(0) + ", READ_DATA_TIME="
                             + (System.currentTimeMillis() - startTime) + " mill secs. recordCount=" + recordCount
@@ -121,6 +127,9 @@ public class HBaseGetRecordCursor extends HBaseRecordCursor {
                     colName = Bytes.toString(
                             arrayCopy(cell.getQualifierArray(), cell.getQualifierOffset(), cell.getQualifierLength()));
                     HBaseColumnHandle hch = fieldIndexMap.get(colName.hashCode());
+                    if (hch == null) {
+                        continue;
+                    }
                     Object value = matchValue(hch.getColumnType(),
                             arrayCopy(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength()));
                     fields[fieldIndex] = value;

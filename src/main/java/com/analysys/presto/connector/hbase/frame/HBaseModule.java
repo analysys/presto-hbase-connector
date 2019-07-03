@@ -17,8 +17,12 @@ import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.meta.HBaseMetadata;
 import com.analysys.presto.connector.hbase.meta.HBaseTables;
 import com.analysys.presto.connector.hbase.meta.HBaseConfig;
+import com.analysys.presto.connector.hbase.query.HBasePageSinkProvider;
+import com.analysys.presto.connector.hbase.query.HBasePageSourceProvider;
 import com.analysys.presto.connector.hbase.query.HBaseRecordSetProvider;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplitManager;
+import com.facebook.presto.spi.connector.ConnectorPageSinkProvider;
+import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.type.TypeManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -51,6 +55,8 @@ class HBaseModule implements Module {
         binder.bind(HBaseSplitManager.class).in(Scopes.SINGLETON);
         binder.bind(HBaseRecordSetProvider.class).in(Scopes.SINGLETON);
         binder.bind(HBaseTables.class).in(Scopes.SINGLETON);
+        binder.bind(ConnectorPageSourceProvider.class).to(HBasePageSourceProvider.class).in(Scopes.SINGLETON);
+        binder.bind(ConnectorPageSinkProvider.class).to(HBasePageSinkProvider.class).in(Scopes.SINGLETON);
         ConfigBinder.configBinder(binder).bindConfig(HBaseConfig.class);
     }
 

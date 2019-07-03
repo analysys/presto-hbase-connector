@@ -10,7 +10,7 @@
 	</parent>-->
 
 	<groupId>com.analysys.presto</groupId>
-	<artifactId>presto0.20-hbase</artifactId>
+	<artifactId>presto-hbase</artifactId>
 	<version>meta-0.1.1</version>
 
 	<!--<description>Presto - HBase Connector</description>

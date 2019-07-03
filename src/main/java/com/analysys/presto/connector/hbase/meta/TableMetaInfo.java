@@ -14,9 +14,11 @@
 package com.analysys.presto.connector.hbase.meta;
 
 import com.analysys.presto.connector.hbase.utils.Constant;
+// import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.facebook.presto.jdbc.internal.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
+// import org.apache.hadoop.hbase.shaded.org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.util.List;
 
