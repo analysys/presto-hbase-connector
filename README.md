@@ -25,8 +25,8 @@
 | 批量Get查询         | 支持     | 不支持 |
 | 谓词下推（Filter）  | 支持     | 不支持 |
 | ClientSideScan      | 支持     | 支持   |
-| Insert              | 支持 | 支持   |
-| Delete              | 支持 | 支持   |
+| Insert              | 支持     | 支持   |
+| Delete              | 支持     | 支持   |
 | 建表语句            | 后续支持 | 支持   |
 
 
@@ -438,3 +438,18 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 ###### 3) 参考“SnappyCodec无法转换为CompressionCodec的问题”部分，修改hbase-common模块的代码，并重新编译更新maven库。其中hbase-shade-client、hbase-shade-server和hbase-common这三个模块必须重新编译。
 
 ###### 4) 在idea的run->Edit Configuration中配置-Djava.library.path到PrestoServer的VM options中。java.library.path就是hadoop的native snappy库路径。
+
+## 更新说明
+
+##### 1. meta-0.1.1
+
+- 支持ClientSide查询功能。
+
+##### 2. meta-0.1.2
+
+- 实现写入和删除的功能。
+- 解决使用ClientSide方式查询default命名空间下的表报错表名不一致的问题。
+- 将参数enable-clientSide-scan默认设置为false。将参数hbase-rootdir的值设置为可空。
+
+
+
