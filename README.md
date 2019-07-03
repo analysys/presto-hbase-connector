@@ -95,7 +95,7 @@ meta-dir=/etc/presto/chbase
          
          这样容易导致多表查询时，第余数个Split集中调度到可用Worker列表开头的几台机器上。
          
-         	    将这个参数设置为true可以改为将第余数个Split随机调度到一个Worker上执行。
+         将这个参数设置为true可以改为将第余数个Split随机调度到一个Worker上执行。
 
 * meta-dir
 
