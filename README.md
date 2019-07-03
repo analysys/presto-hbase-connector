@@ -450,6 +450,7 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 - 实现写入和删除的功能。
 - 解决使用ClientSide方式查询default命名空间下的表报错表名不一致的问题。
 - 将参数enable-clientSide-scan默认设置为false。将参数hbase-rootdir的值设置为可空。
+- 增加参数zookeeper-znode-parent。
 
 
 
