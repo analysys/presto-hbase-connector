@@ -24,16 +24,16 @@ import com.facebook.presto.spi.type.Type;
 import com.facebook.presto.spi.type.VarcharType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;
 
-import static com.analysys.presto.connector.hbase.utils.Constant.*;
+import static com.analysys.presto.connector.hbase.utils.Constant.CONNECTOR_NAME;
 import static com.analysys.presto.connector.hbase.utils.Types.checkType;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;

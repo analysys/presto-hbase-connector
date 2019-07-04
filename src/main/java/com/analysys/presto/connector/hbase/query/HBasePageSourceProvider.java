@@ -21,8 +21,8 @@ import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
-import com.google.inject.Inject;
 
+import javax.inject.Inject;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;

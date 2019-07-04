@@ -16,13 +16,13 @@ package com.analysys.presto.connector.hbase.meta;
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.facebook.presto.spi.SchemaTableName;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
 import io.airlift.log.Logger;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;

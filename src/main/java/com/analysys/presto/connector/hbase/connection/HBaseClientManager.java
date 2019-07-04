@@ -15,7 +15,7 @@ package com.analysys.presto.connector.hbase.connection;
 
 import com.analysys.presto.connector.hbase.meta.HBaseConfig;
 import com.analysys.presto.connector.hbase.meta.HBaseTable;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import io.airlift.log.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
