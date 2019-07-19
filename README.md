@@ -125,7 +125,8 @@ meta-dir=/etc/presto/chbase
 	--namespace_b:
 		table_b1.json
 		table_b2.json
-	table_c.json
+	--default:
+		table_c.json
 ```
 
 这个例子中分别定义了namespace_a:table_a1、namespace_a:table_a2、namespace_b:table_b1、namespace_b:table_b2以及default命名空间下的 table_c这5张表。
