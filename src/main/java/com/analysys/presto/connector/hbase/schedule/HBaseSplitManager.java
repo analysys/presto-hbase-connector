@@ -66,6 +66,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                                           ConnectorSession session,
                                           ConnectorTableLayoutHandle layout,
                                           SplitSchedulingStrategy strategy) {
+        log.info("------ HBaseSplitManager.getSplits() ------");
         HBaseTableLayoutHandle layoutHandle = (HBaseTableLayoutHandle) layout;
         HBaseTableHandle tableHandle = layoutHandle.getTable();
         String schemaName = tableHandle.getSchemaTableName().getSchemaName();
