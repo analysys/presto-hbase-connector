@@ -113,7 +113,6 @@ meta-dir=/etc/presto/chbase
 - 该目录下，首先按照hbase的namespace名创建目录。
 - 每一张表会有一个单独的json文件来保存它的表结构信息，json文件以{表名}.json来命名。
 - 不同namespace的表分别存放在各自的namespace目录下。
-- default namespace的表直接存放在{meta-dir}目录下。
 
 目录结构的样例如下：
 
