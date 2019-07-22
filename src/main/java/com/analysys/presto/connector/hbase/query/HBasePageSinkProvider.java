@@ -34,14 +34,18 @@ public class HBasePageSinkProvider implements ConnectorPageSinkProvider {
      * @return ConnectorPageSink
      */
     @Override
-    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
-                                            ConnectorOutputTableHandle outputTableHandle) {
+    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle,
+                                            ConnectorSession session,
+                                            ConnectorOutputTableHandle outputTableHandle,
+                                            PageSinkProperties pageSinkProperties) {
         throw new PrestoException(NOT_SUPPORTED, "This connector does not support creating table.");
     }
 
     @Override
-    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
-                                            ConnectorInsertTableHandle insertTableHandle) {
+    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle,
+                                            ConnectorSession session,
+                                            ConnectorInsertTableHandle insertTableHandle,
+                                            PageSinkProperties pageSinkProperties) {
         requireNonNull(insertTableHandle, "insertTableHandle is null.");
         checkArgument(insertTableHandle instanceof HBaseInsertTableHandle,
                 "insertTableHandle is not an instance of HBaseInsertTableHandle.");

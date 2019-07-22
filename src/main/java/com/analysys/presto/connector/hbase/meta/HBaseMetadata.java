@@ -271,12 +271,12 @@ public class HBaseMetadata implements ConnectorMetadata {
         return -1;
     }
 
-    @Override
+    /*@Override
     public Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session,
                                                           ConnectorInsertTableHandle insertHandle,
                                                           Collection<Slice> fragments) {
         return Optional.empty();
-    }
+    }*/
 
     private HBaseTableHandle fromConnectorTableHandle(ConnectorTableHandle tableHandle) {
         return checkType(tableHandle, HBaseTableHandle.class, "tableHandle");
@@ -318,10 +318,10 @@ public class HBaseMetadata implements ConnectorMetadata {
     public void finishDelete(ConnectorSession session, ConnectorTableHandle tableHandle, Collection<Slice> fragments) {
     }
 
-    @Override
+    /*@Override
     public boolean supportsMetadataDelete(ConnectorSession session, ConnectorTableHandle tableHandle, ConnectorTableLayoutHandle tableLayoutHandle) {
         return false;
-    }
+    }*/
     // --------------- support delete function end ---------------
 
 }
