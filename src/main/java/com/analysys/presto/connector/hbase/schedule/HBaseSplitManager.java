@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
 
+import com.facebook.presto.spi.connector.SplitSchedulingContext;
+
 /**
  * HBase split manager
  *
