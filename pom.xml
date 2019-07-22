@@ -10,7 +10,7 @@
 	</parent>-->
 
 	<groupId>com.analysys.presto</groupId>
-	<artifactId>presto-hbase</artifactId>
+	<artifactId>prestodb_0.221-hbase</artifactId>
 	<version>meta-0.1.2</version>
 
 	<!--<description>Presto - HBase Connector</description>
@@ -22,7 +22,7 @@
 	<properties>
 		<!--<air.main.basedir>${project.parent.basedir}</air.main.basedir> -->
 		<air.check.skip-license>true</air.check.skip-license>
-		<presto.version>0.201</presto.version>
+		<presto.version>0.221</presto.version>
 		<dep.airlift.version>0.168</dep.airlift.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
