@@ -36,7 +36,7 @@
 1. Mac OS X 或者 Linux
 2. Java 8 Update 92 或更高 (8u92+), 64-bit.
 3. Maven 3.3.9+ (编译)
-4. Presto 0.201+
+4. PrestoDB 0.221+
 
 ## 构建组件
 
