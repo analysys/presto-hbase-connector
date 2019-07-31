@@ -34,9 +34,9 @@
 ## 使用条件
 
 1. Mac OS X 或者 Linux
-2. Java 8 Update 92 或更高 (8u92+), 64-bit.
+2. Java 8 Update 161 或更高 (8u161+), 64-bit.
 3. Maven 3.3.9+ (编译)
-4. Presto 0.201+
+4. PrestoSql 315+
 
 ## 构建组件
 
@@ -452,5 +452,8 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 - 将参数enable-clientSide-scan默认设置为false。将参数hbase-rootdir的值设置为可空。
 - 增加参数zookeeper-znode-parent。
 
+##### 3. meta-0.1.3
 
+- 将connector迁移到PrestoSql-315版本。
+- 提供一个基于PrestoDb-0.221实现的Tag。
 

@@ -16,14 +16,14 @@ package com.analysys.presto.connector.hbase.query;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
 import com.analysys.presto.connector.hbase.utils.Constant;
-import com.facebook.presto.spi.RecordCursor;
-import com.facebook.presto.spi.block.BlockBuilder;
-import com.facebook.presto.spi.block.PageBuilderStatus;
-import com.facebook.presto.spi.type.*;
 import com.google.common.base.Preconditions;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
+import io.prestosql.spi.block.BlockBuilder;
+import io.prestosql.spi.block.PageBuilderStatus;
+import io.prestosql.spi.connector.RecordCursor;
+import io.prestosql.spi.type.*;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -35,9 +35,9 @@ import java.util.Map;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
 import static com.analysys.presto.connector.hbase.utils.Utils.arrayCopy;
-import static com.facebook.presto.spi.type.DoubleType.DOUBLE;
-import static com.facebook.presto.spi.type.IntegerType.INTEGER;
-import static com.facebook.presto.spi.type.TimestampType.TIMESTAMP;
+import static io.prestosql.spi.type.DoubleType.DOUBLE;
+import static io.prestosql.spi.type.IntegerType.INTEGER;
+import static io.prestosql.spi.type.TimestampType.TIMESTAMP;
 
 /**
  * HBase record cursor fetch record in split

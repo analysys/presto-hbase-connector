@@ -13,10 +13,10 @@
  */
 package com.analysys.presto.connector.hbase.meta;
 
-import com.facebook.presto.spi.SchemaTableName;
-import com.facebook.presto.spi.type.Type;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
+import io.prestosql.spi.connector.SchemaTableName;
+import io.prestosql.spi.type.Type;
 
 import java.util.List;
 

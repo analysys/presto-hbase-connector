@@ -13,7 +13,7 @@
  */
 package com.analysys.presto.connector.hbase.frame;
 
-import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import io.prestosql.spi.connector.ConnectorTransactionHandle;
 
 /**
  * HBase transaction handle

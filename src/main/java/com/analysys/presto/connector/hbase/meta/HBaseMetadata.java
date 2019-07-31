@@ -17,15 +17,14 @@ import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.utils.Constant;
 import com.analysys.presto.connector.hbase.utils.Utils;
-import com.facebook.presto.spi.*;
-import com.facebook.presto.spi.connector.ConnectorMetadata;
-import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
-import com.facebook.presto.spi.type.Type;
-import com.facebook.presto.spi.type.VarcharType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
+import io.prestosql.spi.connector.*;
+import io.prestosql.spi.statistics.ComputedStatistics;
+import io.prestosql.spi.type.Type;
+import io.prestosql.spi.type.VarcharType;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 
@@ -83,8 +82,8 @@ public class HBaseMetadata implements ConnectorMetadata {
     @Override
     public List<ConnectorTableLayoutResult> getTableLayouts(ConnectorSession connectorSession,
                                                             ConnectorTableHandle connectorTableHandle,
-                                                            Constraint<ColumnHandle> constraint,
-                                                            Optional<Set<ColumnHandle>> optional) {
+                                                            Constraint constraint,
+                                                            Optional<Set<ColumnHandle>> desiredColumns) {
         HBaseTableHandle tableHandle = checkType(connectorTableHandle, HBaseTableHandle.class, "tableHandle");
         ConnectorTableLayout layout = new ConnectorTableLayout(
                 new HBaseTableLayoutHandle(tableHandle, constraint.getSummary()));
@@ -121,11 +120,11 @@ public class HBaseMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public List<SchemaTableName> listTables(ConnectorSession connectorSession, String schema) {
+    public List<SchemaTableName> listTables(ConnectorSession connectorSession, Optional<String> schemaName) {
         Admin admin = hbaseClientManager.getAdmin();
         List<SchemaTableName> schemaTableNames;
         try {
-            schemaTableNames = new ArrayList<>(hbaseTables.getTables(admin, schema).keySet());
+            schemaTableNames = new ArrayList<>(hbaseTables.getTables(admin, schemaName.orElse("")).keySet());
         } finally {
             if (admin != null) {
                 hbaseClientManager.close(admin);
@@ -180,9 +179,9 @@ public class HBaseMetadata implements ConnectorMetadata {
     }
 
     private List<SchemaTableName> listTables(ConnectorSession session, SchemaTablePrefix prefix) {
-        return (prefix.getSchemaName() == null ?
-                this.listTables(session, prefix.getSchemaName()) :
-                ImmutableList.of(new SchemaTableName(prefix.getSchemaName(), prefix.getTableName())));
+        return (prefix.getSchema().isPresent() ?
+                this.listTables(session, prefix.getSchema()) :
+                ImmutableList.of(new SchemaTableName("", prefix.getTable().orElse(""))));
     }
 
     @Override
@@ -274,7 +273,8 @@ public class HBaseMetadata implements ConnectorMetadata {
     @Override
     public Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session,
                                                           ConnectorInsertTableHandle insertHandle,
-                                                          Collection<Slice> fragments) {
+                                                          Collection<Slice> fragments,
+                                                          Collection<ComputedStatistics> computedStatistics) {
         return Optional.empty();
     }
 
