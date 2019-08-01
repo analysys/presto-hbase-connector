@@ -455,5 +455,5 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 ##### 3. meta-0.1.3
 
 - 将connector迁移到PrestoSql-315版本。
-- 提供一个基于PrestoDb-0.221实现的Tag。
+- 提供一个基于PrestoDb-0.221实现的可用版本，分支名为dev_prestodb-0.221_0.1.2。
 
