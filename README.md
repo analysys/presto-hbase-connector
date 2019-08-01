@@ -10,7 +10,7 @@
 | ------ | ------------------------------------------------------------ |
 | 数据量 | 事件表500万条数据，90个字段                                  |
 | 节点数 | 3                                                            |
-| 硬件   | 16逻辑核 64G内存（其中Presto和RegionServer各占16G内存） 4T*2硬盘 |
+| 硬件   | 16逻辑核 64G内存（其中Presto和HBase各占16G内存） 4T*2硬盘 |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
@@ -65,19 +65,19 @@ meta-dir=/etc/presto/chbase
 
 * connector.name
 
-         该配置固定设置为hbase
+         该配置固定设置为hbase。
 
 * zookeeper-quorum
 
-         相当于HBase API的hbase.zookeeper.quorum参数
+         相当于HBase API的hbase.zookeeper.quorum参数。
 
 * zookeeper-client-port
 
-         相当于HBase API的hbase.zookeeper.property.clientPort参数
+         相当于HBase API的hbase.zookeeper.property.clientPort参数。
 
 * hbase-cluster-distributed
 
-         相当于HBase API的hbase.cluster.distributed参数
+         相当于HBase API的hbase.cluster.distributed参数。
 
 * presto-workers-name
 
@@ -87,7 +87,7 @@ meta-dir=/etc/presto/chbase
 
 * presto-server-port
 
-         与{Presto_Config_Dir}/config.properties配置文件的http-server.http.port参数
+         与{Presto_Config_Dir}/config.properties配置文件的http-server.http.port参数。
 
 * random-schedule-redundant-split
 
@@ -104,7 +104,15 @@ meta-dir=/etc/presto/chbase
 * zookeeper-znode-parent
 
          等同于hbase-site.xml的zookeeper.znode.parent参数。
-     
+    
+* enable-clientSide-scan
+
+         是否启用HBase的ClientSide查询模式。默认为不启用，false。
+         
+* clientside-querymode-tablenames
+
+         使用ClientSide模式进行查询的表名，多表用英文逗号间隔。
+ 
 ##### 2.配置namespace
 
 完成hbase.properties的配置之后，需要在{meta-dir}目录创建HBase的namespace目录结构
@@ -152,9 +160,13 @@ columns json：
 | ---------- | ------------------------------------------------------------ |
 | family     | 列族名                                                       |
 | columnName | 字段名                                                       |
-| isRowKey   | 是否RowKey                                                   |
+| isRowKey   | 是否行键                                                     |
 | type       | 字段类型（大小写不敏感）： string、int、bigint、double、boolean（用int存储，0代表false，1代表false）、array< string > |
 | comment    | 字段备注                                                     |
+
+说明：isRowKey为true，表示我们把表的行键抽象成为了一个具体的字段。无论是查询、写入还是其他各种复杂操作，他在表面上与一个普通的字段没有任何区别，只不过在底层他作为表的行键有着其特殊的含义。
+
+RowKey字段的类型必须为varchar。
 
 以下是一个简单的json文件示例：
 
@@ -166,9 +178,9 @@ columns json：
   "rowKeySaltUpperAndLower": "0,29",
   "describe": "Table for test!",
   "columns": [{
-    "family": "f",
+    "family": "",
     "columnName": "rowkey",
-    "comment": "Column for test!",
+    "comment": "The RowKey column of table!",
     "type": "varchar",
     "isRowKey": true
   }, {
@@ -223,7 +235,7 @@ insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwha
 
 ## Delete操作
 
-在dev_0.1.1版本支持了删除操作。删除操作不需要用户在sql中指明数据的row_key的值，但是要求所操作的表在定义其元数据的json文件中，必须设置了row_key字段。connector在筛选出所要删除的数据时，会获取到数据的row_key，然后根据row_key的值删除指定的数据。sql示例如下：
+在meta_0.1.1版本支持了删除操作。删除操作不需要用户在sql中指明数据的row_key的值，但是要求所操作的表在定义其元数据的json文件中，必须设置了row_key字段。connector在筛选出所要删除的数据时，会获取到数据的row_key，然后根据row_key的值删除指定的数据。sql示例如下：
 
 ```sql
 delete from hbase.db_test.test_event where xwhen >= 1562139516028;
