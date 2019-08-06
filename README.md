@@ -374,7 +374,7 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 经过定位发现Presto加载插件的类是采用自定义的PluginClassLoader，而SnappyCodec是采用AppClassLoader加载的。二者classLoader不同导致父类和子类不具备父子继承关系。
 
-修改hbase-common-1.1.2.jar中代码，将SnappyCodec使用PluginClassLoader的方式加载解决了这个问题。需要修改的代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改方法如下：
+修改hbase-common-1.1.2.jar中代码，将SnappyCodec改为使用PluginClassLoader的方式加载解决了这个问题。需要修改的代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改方法如下：
 
 ```
   /**
@@ -468,4 +468,4 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 - 将connector迁移到PrestoSql-315版本。
 - 提供一个基于PrestoDb-0.221实现的可用版本，分支名为dev_prestodb-0.221_0.1.2。
-
+- 修改doc文档。
