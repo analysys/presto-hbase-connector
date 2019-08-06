@@ -1,12 +1,12 @@
 package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
-import com.facebook.presto.spi.Page;
-import com.facebook.presto.spi.RecordPageSource;
-import com.facebook.presto.spi.UpdatablePageSource;
-import com.facebook.presto.spi.block.Block;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
+import io.prestosql.spi.Page;
+import io.prestosql.spi.block.Block;
+import io.prestosql.spi.connector.RecordPageSource;
+import io.prestosql.spi.connector.UpdatablePageSource;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Delete;

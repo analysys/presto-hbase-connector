@@ -14,9 +14,9 @@
 package com.analysys.presto.connector.hbase.meta;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
-import com.facebook.presto.spi.SchemaTableName;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
+import io.prestosql.spi.connector.SchemaTableName;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;

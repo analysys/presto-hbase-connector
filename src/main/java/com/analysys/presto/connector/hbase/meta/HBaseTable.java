@@ -14,9 +14,9 @@
 package com.analysys.presto.connector.hbase.meta;
 
 import com.analysys.presto.connector.hbase.utils.Utils;
-import com.facebook.presto.spi.ColumnMetadata;
 import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
+import io.prestosql.spi.connector.ColumnMetadata;
 import org.apache.hadoop.hbase.HTableDescriptor;
 
 import java.util.List;

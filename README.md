@@ -10,7 +10,7 @@
 | ------ | ------------------------------------------------------------ |
 | 数据量 | 事件表500万条数据，90个字段                                  |
 | 节点数 | 3                                                            |
-| 硬件   | 16逻辑核 64G内存（其中Presto和RegionServer各占16G内存） 4T*2硬盘 |
+| 硬件   | 16逻辑核 64G内存（其中Presto和HBase各占16G内存） 4T*2硬盘 |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
@@ -34,9 +34,9 @@
 ## 使用条件
 
 1. Mac OS X 或者 Linux
-2. Java 8 Update 92 或更高 (8u92+), 64-bit.
+2. Java 8 Update 161 或更高 (8u161+), 64-bit.
 3. Maven 3.3.9+ (编译)
-4. Presto 0.201+
+4. PrestoSql 315+
 
 ## 构建组件
 
@@ -65,19 +65,19 @@ meta-dir=/etc/presto/chbase
 
 * connector.name
 
-         该配置固定设置为hbase
+         该配置固定设置为hbase。
 
 * zookeeper-quorum
 
-         相当于HBase API的hbase.zookeeper.quorum参数
+         相当于HBase API的hbase.zookeeper.quorum参数。
 
 * zookeeper-client-port
 
-         相当于HBase API的hbase.zookeeper.property.clientPort参数
+         相当于HBase API的hbase.zookeeper.property.clientPort参数。
 
 * hbase-cluster-distributed
 
-         相当于HBase API的hbase.cluster.distributed参数
+         相当于HBase API的hbase.cluster.distributed参数。
 
 * presto-workers-name
 
@@ -87,7 +87,7 @@ meta-dir=/etc/presto/chbase
 
 * presto-server-port
 
-         与{Presto_Config_Dir}/config.properties配置文件的http-server.http.port参数
+         与{Presto_Config_Dir}/config.properties配置文件的http-server.http.port参数。
 
 * random-schedule-redundant-split
 
@@ -104,7 +104,15 @@ meta-dir=/etc/presto/chbase
 * zookeeper-znode-parent
 
          等同于hbase-site.xml的zookeeper.znode.parent参数。
-     
+    
+* enable-clientSide-scan
+
+         是否启用HBase的ClientSide查询模式。默认为不启用，false。
+         
+* clientside-querymode-tablenames
+
+         使用ClientSide模式进行查询的表名，多表用英文逗号间隔。
+ 
 ##### 2.配置namespace
 
 完成hbase.properties的配置之后，需要在{meta-dir}目录创建HBase的namespace目录结构
@@ -152,9 +160,13 @@ columns json：
 | ---------- | ------------------------------------------------------------ |
 | family     | 列族名                                                       |
 | columnName | 字段名                                                       |
-| isRowKey   | 是否RowKey                                                   |
+| isRowKey   | 是否行键                                                     |
 | type       | 字段类型（大小写不敏感）： string、int、bigint、double、boolean（用int存储，0代表false，1代表false）、array< string > |
 | comment    | 字段备注                                                     |
+
+说明：isRowKey为true，表示我们把表的行键抽象成为了一个具体的字段。无论是查询、写入还是其他各种复杂操作，他在表面上与一个普通的字段没有任何区别，只不过在底层他作为表的行键有着其特殊的含义。
+
+RowKey字段的类型必须为varchar。
 
 以下是一个简单的json文件示例：
 
@@ -166,9 +178,9 @@ columns json：
   "rowKeySaltUpperAndLower": "0,29",
   "describe": "Table for test!",
   "columns": [{
-    "family": "f",
+    "family": "",
     "columnName": "rowkey",
-    "comment": "Column for test!",
+    "comment": "The RowKey column of table!",
     "type": "varchar",
     "isRowKey": true
   }, {
@@ -223,7 +235,7 @@ insert into hbase.db_test.test_event(row_key, xwho, distinct_id, ds, xwhen, xwha
 
 ## Delete操作
 
-在dev_0.1.1版本支持了删除操作。删除操作不需要用户在sql中指明数据的row_key的值，但是要求所操作的表在定义其元数据的json文件中，必须设置了row_key字段。connector在筛选出所要删除的数据时，会获取到数据的row_key，然后根据row_key的值删除指定的数据。sql示例如下：
+在meta_0.1.1版本支持了删除操作。删除操作不需要用户在sql中指明数据的row_key的值，但是要求所操作的表在定义其元数据的json文件中，必须设置了row_key字段。connector在筛选出所要删除的数据时，会获取到数据的row_key，然后根据row_key的值删除指定的数据。sql示例如下：
 
 ```sql
 delete from hbase.db_test.test_event where xwhen >= 1562139516028;
@@ -254,7 +266,7 @@ delete from hbase.db_test.test_event where xwhen >= 1562139516028;
 
 * rowKeySeparator
 
-         RowKey的不同组成部分之间的分隔符，默认是\001
+      RowKey的不同组成部分之间的分隔符，默认是\001
 
 ##### 2.根据RowKey的组成拼接StartKey和EndKey
 
@@ -283,17 +295,17 @@ select xwhat, xwho, date, xwhen from t_event_test where xwhat='login' and xwho i
 
 * rowKeyFormat
 
-         定义RowKey是由哪些字段有序组成。以刚才的例子来说，该参数应该配置为"xwhat,xwho"
+         定义RowKey是由哪些字段有序组成。以刚才的例子来说，这里应该配置为"xwhat,xwho"
 
 * rowKeySeparator
 
-         RowKey的不同组成部分之间的分隔符，默认是\001
+         RowKey的不同组成部分之间的分隔符，默认是\001。以刚才的例子来说，这里应该配置为"-"
 
 如果想查看sql具体切分出了哪些split，可以将日志级别设置为info，在server.log中查看。
 
 ##### 3.批量get
 
-批量get就是指将所要查询的多个RowKey封装成一个List< Get >，然后请求这个列表以获取数据的查询方式。
+批量get就是HBase的API中将所要查询的多个RowKey封装成一个List< Get >，然后请求这个列表以获取数据的查询方式。
 
 这种查询方式使用起来非常便利，可以直接将要查询的RowKey作为等值匹配的查询条件放到SQL中即可。
 
@@ -312,7 +324,7 @@ select * from t_event_test where rk in ('rk1', 'rk2', 'rk3');
 ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Client端直接扫描HDFS上的数据文件，不需要发送请求给RegionServer，再由RegionServer扫描HDFS上的文件。
 这样减少了RegionServer的负担，并且即使RegionServer处于不可用状态也不影响查询。同时，因为是直接读取HDFS，所以在负载较为均衡的集群中，可以基本实现本地读策略，避免了很多网络负载。
 
-下图是ClientSideRegionScanner与普通RegionScanner的性能对比，通过比较可以得出，大部分查询都有了30%以上的提升，尤其是接近全表扫描的查询性能提升更为明显：
+下图是本组件使用ClientSideRegionScanner与普通RegionScanner的性能对比，通过比较可以得出，大部分查询都有了30%以上的提升，尤其是接近全表扫描的查询性能提升更为明显：
 
 ![ClientSide&NormalScanner.png](https://github.com/analysys/presto-hbase-connector/blob/dev_0.1.1/imgs/ClientSide-NormalScanner.png?raw=true)
 
@@ -362,7 +374,7 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 经过定位发现Presto加载插件的类是采用自定义的PluginClassLoader，而SnappyCodec是采用AppClassLoader加载的。二者classLoader不同导致父类和子类不具备父子继承关系。
 
-修改hbase-common-1.1.2.jar中代码，将SnappyCodec使用PluginClassLoader的方式加载解决了这个问题。需要修改的代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改方法如下：
+修改hbase-common-1.1.2.jar中代码，将SnappyCodec改为使用PluginClassLoader的方式加载解决了这个问题。需要修改的代码为hbase-common模块的org.apache.hadoop.hbase.io.compress.Compression类，修改方法如下：
 
 ```
   /**
@@ -452,5 +464,8 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 - 将参数enable-clientSide-scan默认设置为false。将参数hbase-rootdir的值设置为可空。
 - 增加参数zookeeper-znode-parent。
 
+##### 3. meta-0.1.3
 
-
+- 将connector迁移到PrestoSql-315版本。
+- 提供一个基于PrestoDb-0.221实现的可用版本，分支名为dev_prestodb-0.221_0.1.2。
+- 修改doc文档。

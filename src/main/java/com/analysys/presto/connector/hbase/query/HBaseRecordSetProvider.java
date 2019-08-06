@@ -13,19 +13,14 @@
  */
 package com.analysys.presto.connector.hbase.query;
 
-import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
+import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
-import com.facebook.presto.spi.ColumnHandle;
-import com.facebook.presto.spi.ConnectorSession;
-import com.facebook.presto.spi.ConnectorSplit;
-import com.facebook.presto.spi.RecordSet;
-import com.facebook.presto.spi.connector.ConnectorRecordSetProvider;
-import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import io.prestosql.spi.connector.*;
 
 import javax.inject.Inject;
 import java.util.List;

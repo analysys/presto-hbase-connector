@@ -13,10 +13,10 @@
  */
 package com.analysys.presto.connector.hbase.schedule;
 
-import com.facebook.presto.spi.ConnectorSplit;
-import com.facebook.presto.spi.HostAddress;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.prestosql.spi.HostAddress;
+import io.prestosql.spi.connector.ConnectorSplit;
 import org.apache.hadoop.hbase.HRegionInfo;
 
 import java.util.List;

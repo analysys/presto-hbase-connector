@@ -18,8 +18,8 @@ import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseTableLayoutHandle;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
-import com.facebook.presto.spi.ConnectorHandleResolver;
-import com.facebook.presto.spi.ConnectorInsertTableHandle;
+import io.prestosql.spi.connector.ConnectorHandleResolver;
+import io.prestosql.spi.connector.ConnectorInsertTableHandle;
 
 /**
  * HBase handle resolver

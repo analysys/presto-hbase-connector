@@ -19,16 +19,15 @@ import com.analysys.presto.connector.hbase.meta.*;
 import com.analysys.presto.connector.hbase.utils.Constant;
 import com.analysys.presto.connector.hbase.utils.TimeTicker;
 import com.analysys.presto.connector.hbase.utils.Utils;
-import com.facebook.presto.spi.*;
-import com.facebook.presto.spi.connector.ConnectorSplitManager;
-import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
-import com.facebook.presto.spi.predicate.Domain;
-import com.facebook.presto.spi.predicate.Range;
-import com.facebook.presto.spi.predicate.TupleDomain;
 import com.google.common.base.Preconditions;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
-import org.apache.commons.lang3.StringUtils;
+import io.prestosql.spi.HostAddress;
+import io.prestosql.spi.connector.*;
+// import org.apache.commons.lang3.StringUtils;
+import io.prestosql.spi.predicate.Domain;
+import io.prestosql.spi.predicate.Range;
+import io.prestosql.spi.predicate.TupleDomain;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.client.Admin;
 
@@ -37,6 +36,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
+import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
+import static io.prestosql.spi.predicate.Marker.Bound.ABOVE;
 
 /**
  * HBase split manager
@@ -227,7 +228,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         List<String> startKeyList;
 
         // make startKey by rowKey format.
-        if (!conditions.isEmpty() && !StringUtils.isEmpty(tableMetaInfo.getRowKeyFormat())) {
+        if (!conditions.isEmpty() && !isEmpty(tableMetaInfo.getRowKeyFormat())) {
             startKeyList = getScanStartKey(conditions, "", tableMetaInfo.getRowKeyFormat().split(","), 0);
         } else {
             startKeyList = new ArrayList<>();
@@ -322,7 +323,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 salt = Utils.addZeroPrefix(String.valueOf(i),
                         String.valueOf(saltUpper).length() - String.valueOf(i).length());
                 String saltyStartKey;
-                if (StringUtils.isEmpty(startKey)) {
+                if (isEmpty(startKey)) {
                     saltyStartKey = salt;
                 } else {
                     saltyStartKey = salt + rowKeySplitter + startKey;
@@ -358,7 +359,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         for (ConditionInfo condition : formatCondition) {
             tmpStartKeys.addAll(
                     getScanStartKey(conditions,
-                            tmpStartKey + ((StringUtils.isEmpty(tmpStartKey) ? "" : ",") + condition.valueToString()),
+                            tmpStartKey + ((isEmpty(tmpStartKey) ? "" : ",") + condition.valueToString()),
                             rowKeyFormat,
                             formatIndex + 1)
             );

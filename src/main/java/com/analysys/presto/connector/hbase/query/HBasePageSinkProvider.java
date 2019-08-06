@@ -2,14 +2,13 @@ package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
-import com.facebook.presto.spi.*;
-import com.facebook.presto.spi.connector.ConnectorPageSinkProvider;
-import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import io.prestosql.spi.PrestoException;
+import io.prestosql.spi.connector.*;
 
 import javax.inject.Inject;
 
-import static com.facebook.presto.spi.StandardErrorCode.NOT_SUPPORTED;
 import static com.google.common.base.Preconditions.checkArgument;
+import static io.prestosql.spi.StandardErrorCode.NOT_SUPPORTED;
 import static java.util.Objects.requireNonNull;
 
 /**

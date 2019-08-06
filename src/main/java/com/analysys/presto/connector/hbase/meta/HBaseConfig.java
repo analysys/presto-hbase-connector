@@ -15,7 +15,7 @@ package com.analysys.presto.connector.hbase.meta;
 
 import io.airlift.configuration.Config;
 import io.airlift.log.Logger;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.net.InetAddress;

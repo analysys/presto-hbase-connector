@@ -14,13 +14,16 @@
 package com.analysys.presto.connector.hbase.meta;
 
 import com.analysys.presto.connector.hbase.utils.Constant;
-// import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.facebook.presto.jdbc.internal.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
-// import org.apache.hadoop.hbase.shaded.org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.util.List;
+
+import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
+
+// import com.facebook.presto.jdbc.internal.jackson.annotation.JsonIgnore;
+// import com.fasterxml.jackson.annotation.JsonIgnore;
+// import org.apache.hadoop.hbase.shaded.org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * Table meta info meta
@@ -101,7 +104,7 @@ public class TableMetaInfo {
 
     @JsonIgnore
     public String getRowKeyColName() {
-        if (StringUtils.isEmpty(rowKeyColName)) {
+        if (isEmpty(rowKeyColName)) {
             for (ColumnMetaInfo c : this.columns) {
                 if (c.isIsRowKey()) {
                     this.rowKeyColName = c.getColumnName();
@@ -115,7 +118,7 @@ public class TableMetaInfo {
     }
 
     public String getRowKeySeparator() {
-        return StringUtils.isEmpty(rowKeySeparator) ? Constant.ROWKEY_SPLITER : rowKeySeparator;
+        return isEmpty(rowKeySeparator) ? Constant.ROWKEY_SPLITER : rowKeySeparator;
     }
 
     public void setRowKeySeparator(String rowKeySeparator) {

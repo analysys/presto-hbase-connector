@@ -13,8 +13,8 @@
  */
 package com.analysys.presto.connector.hbase.meta;
 
-import com.facebook.presto.spi.ColumnMetadata;
-import com.facebook.presto.spi.type.Type;
+import io.prestosql.spi.connector.ColumnMetadata;
+import io.prestosql.spi.type.Type;
 
 import java.util.Objects;
 
