@@ -266,7 +266,7 @@ delete from hbase.db_test.test_event where xwhen >= 1562139516028;
 
 * rowKeySeparator
 
-         RowKey的不同组成部分之间的分隔符，默认是\001
+      RowKey的不同组成部分之间的分隔符，默认是\001
 
 ##### 2.根据RowKey的组成拼接StartKey和EndKey
 
