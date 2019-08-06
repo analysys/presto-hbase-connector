@@ -295,17 +295,17 @@ select xwhat, xwho, date, xwhen from t_event_test where xwhat='login' and xwho i
 
 * rowKeyFormat
 
-         定义RowKey是由哪些字段有序组成。以刚才的例子来说，该参数应该配置为"xwhat,xwho"
+         定义RowKey是由哪些字段有序组成。以刚才的例子来说，这里应该配置为"xwhat,xwho"
 
 * rowKeySeparator
 
-         RowKey的不同组成部分之间的分隔符，默认是\001
+         RowKey的不同组成部分之间的分隔符，默认是\001。以刚才的例子来说，这里应该配置为"-"
 
 如果想查看sql具体切分出了哪些split，可以将日志级别设置为info，在server.log中查看。
 
 ##### 3.批量get
 
-批量get就是指将所要查询的多个RowKey封装成一个List< Get >，然后请求这个列表以获取数据的查询方式。
+批量get就是HBase的API中将所要查询的多个RowKey封装成一个List< Get >，然后请求这个列表以获取数据的查询方式。
 
 这种查询方式使用起来非常便利，可以直接将要查询的RowKey作为等值匹配的查询条件放到SQL中即可。
 
@@ -324,7 +324,7 @@ select * from t_event_test where rk in ('rk1', 'rk2', 'rk3');
 ClientSideRegionScanner是HBase在0.96版本新增的Scanner，他可以在Client端直接扫描HDFS上的数据文件，不需要发送请求给RegionServer，再由RegionServer扫描HDFS上的文件。
 这样减少了RegionServer的负担，并且即使RegionServer处于不可用状态也不影响查询。同时，因为是直接读取HDFS，所以在负载较为均衡的集群中，可以基本实现本地读策略，避免了很多网络负载。
 
-下图是ClientSideRegionScanner与普通RegionScanner的性能对比，通过比较可以得出，大部分查询都有了30%以上的提升，尤其是接近全表扫描的查询性能提升更为明显：
+下图是本组件使用ClientSideRegionScanner与普通RegionScanner的性能对比，通过比较可以得出，大部分查询都有了30%以上的提升，尤其是接近全表扫描的查询性能提升更为明显：
 
 ![ClientSide&NormalScanner.png](https://github.com/analysys/presto-hbase-connector/blob/dev_0.1.1/imgs/ClientSide-NormalScanner.png?raw=true)
 
