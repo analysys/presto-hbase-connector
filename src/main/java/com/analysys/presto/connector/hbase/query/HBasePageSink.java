@@ -33,8 +33,8 @@ import static com.analysys.presto.connector.hbase.utils.Constant.SYSTEMOUT_INTER
 // import static io.prestosql.client.ClientStandardTypes.BIGINT;
 import static io.prestosql.spi.type.BigintType.BIGINT;
 import static io.prestosql.spi.type.BooleanType.BOOLEAN;
+import static io.prestosql.spi.type.DoubleType.DOUBLE;
 import static io.prestosql.spi.type.IntegerType.INTEGER;
-import static io.prestosql.spi.type.StandardTypes.DOUBLE;
 import static io.prestosql.spi.type.TimestampType.TIMESTAMP;
 import static io.prestosql.spi.type.Varchars.isVarcharType;
 import static java.util.Objects.requireNonNull;
