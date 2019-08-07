@@ -30,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.ARRAY_STRING_SPLITTER;
 import static com.analysys.presto.connector.hbase.utils.Constant.SYSTEMOUT_INTERVAL;
-// import static io.prestosql.client.ClientStandardTypes.BIGINT;
 import static io.prestosql.spi.type.BigintType.BIGINT;
 import static io.prestosql.spi.type.BooleanType.BOOLEAN;
 import static io.prestosql.spi.type.DoubleType.DOUBLE;
