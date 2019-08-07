@@ -21,10 +21,6 @@ import java.util.List;
 
 import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
 
-// import com.facebook.presto.jdbc.internal.jackson.annotation.JsonIgnore;
-// import com.fasterxml.jackson.annotation.JsonIgnore;
-// import org.apache.hadoop.hbase.shaded.org.codehaus.jackson.annotate.JsonIgnore;
-
 /**
  * Table meta info meta
  *

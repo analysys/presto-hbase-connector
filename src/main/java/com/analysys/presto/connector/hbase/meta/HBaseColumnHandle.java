@@ -75,10 +75,6 @@ public final class HBaseColumnHandle implements ColumnHandle {
         return this.ordinalPosition;
     }
 
-    public ColumnMetadata getColumnMetadata() {
-        return new ColumnMetadata(this.columnName, this.columnType);
-    }
-
     @JsonProperty
     public String getFamily() {
         return family;
@@ -108,7 +104,7 @@ public final class HBaseColumnHandle implements ColumnHandle {
         }
     }
 
-    public ColumnMetadata toColumnMetadata() {
+    ColumnMetadata toColumnMetadata() {
         return new ColumnMetadata(columnName, columnType);
     }
 

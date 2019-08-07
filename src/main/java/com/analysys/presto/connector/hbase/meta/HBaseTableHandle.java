@@ -15,8 +15,10 @@ package com.analysys.presto.connector.hbase.meta;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.prestosql.spi.connector.ColumnHandle;
 import io.prestosql.spi.connector.ConnectorTableHandle;
 import io.prestosql.spi.connector.SchemaTableName;
+import io.prestosql.spi.predicate.TupleDomain;
 
 import java.util.Objects;
 
@@ -31,16 +33,24 @@ import static java.util.Objects.requireNonNull;
 public class HBaseTableHandle implements ConnectorTableHandle {
 
     private final SchemaTableName schemaTableName;
+    private final TupleDomain<ColumnHandle> constraint;
 
     @JsonCreator
     public HBaseTableHandle(
-            @JsonProperty("schemaTableName") SchemaTableName schemaTableName) {
+            @JsonProperty("schemaTableName") SchemaTableName schemaTableName,
+            @JsonProperty("constraint") TupleDomain<ColumnHandle> constraint) {
         this.schemaTableName = requireNonNull(schemaTableName, "schemaTableName is null");
+        this.constraint = requireNonNull(constraint, "constraint is null");
     }
 
     @JsonProperty
     public SchemaTableName getSchemaTableName() {
         return schemaTableName;
+    }
+
+    @JsonProperty
+    public TupleDomain<ColumnHandle> getConstraint() {
+        return constraint;
     }
 
     @Override

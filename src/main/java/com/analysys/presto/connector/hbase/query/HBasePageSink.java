@@ -1,7 +1,6 @@
 package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
-import com.analysys.presto.connector.hbase.meta.HBaseExtendedTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
 import com.analysys.presto.connector.hbase.utils.Utils;
 import com.google.common.base.Preconditions;
@@ -13,7 +12,6 @@ import io.prestosql.spi.block.Block;
 import io.prestosql.spi.block.DictionaryBlock;
 import io.prestosql.spi.block.VariableWidthBlock;
 import io.prestosql.spi.connector.ConnectorPageSink;
-import io.prestosql.spi.connector.ConnectorSession;
 import io.prestosql.spi.type.DecimalType;
 import io.prestosql.spi.type.SqlDecimal;
 import io.prestosql.spi.type.StandardTypes;
@@ -57,20 +55,19 @@ public class HBasePageSink implements ConnectorPageSink {
     private final int rowKeyColumnChannel;
     private final Map<String, String> colNameAndFamilyNameMap;
 
-    public HBasePageSink(ConnectorSession connectorSession, HBaseClientManager clientManager,
-                         HBaseExtendedTableHandle extendedTableHandle) {
+    public HBasePageSink(HBaseClientManager clientManager,
+                         HBaseInsertTableHandle insertTableHandle) {
         requireNonNull(clientManager, "clientManager is null");
-        this.columnTypes = extendedTableHandle.getColumnTypes();
-        this.columnNames = extendedTableHandle.getColumnNames();
+        this.columnTypes = insertTableHandle.getColumnTypes();
+        this.columnNames = insertTableHandle.getColumnNames();
 
         this.clientManager = clientManager;
-        HBaseInsertTableHandle insertTableHandle = (HBaseInsertTableHandle) extendedTableHandle;
         this.rowKeyColumnChannel = insertTableHandle.getRowKeyColumnChannel();
         this.colNameAndFamilyNameMap = insertTableHandle.getColNameAndFamilyNameMap();
 
         try {
-            this.tableName = extendedTableHandle.getSchemaTableName().getTableName();
-            this.schemaName = extendedTableHandle.getSchemaTableName().getSchemaName();
+            this.tableName = insertTableHandle.getSchemaTableName().getTableName();
+            this.schemaName = insertTableHandle.getSchemaTableName().getSchemaName();
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }

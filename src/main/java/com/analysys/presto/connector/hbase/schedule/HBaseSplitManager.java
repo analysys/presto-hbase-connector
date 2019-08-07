@@ -24,7 +24,6 @@ import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import io.prestosql.spi.HostAddress;
 import io.prestosql.spi.connector.*;
-// import org.apache.commons.lang3.StringUtils;
 import io.prestosql.spi.predicate.Domain;
 import io.prestosql.spi.predicate.Range;
 import io.prestosql.spi.predicate.TupleDomain;
@@ -37,7 +36,6 @@ import java.util.stream.Collectors;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
 import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
-import static io.prestosql.spi.predicate.Marker.Bound.ABOVE;
 
 /**
  * HBase split manager
@@ -63,18 +61,19 @@ public class HBaseSplitManager implements ConnectorSplitManager {
     }
 
     @Override
-    public ConnectorSplitSource getSplits(ConnectorTransactionHandle transHd,
-                                          ConnectorSession session,
-                                          ConnectorTableLayoutHandle layout,
-                                          SplitSchedulingStrategy strategy) {
-        HBaseTableLayoutHandle layoutHandle = (HBaseTableLayoutHandle) layout;
-        HBaseTableHandle tableHandle = layoutHandle.getTable();
+    public ConnectorSplitSource getSplits(
+            ConnectorTransactionHandle transaction,
+            ConnectorSession session,
+            ConnectorTableHandle connectorTableHandle,
+            SplitSchedulingStrategy splitSchedulingStrategy) {
+        HBaseTableHandle tableHandle = (HBaseTableHandle) connectorTableHandle;
+
         String schemaName = tableHandle.getSchemaTableName().getSchemaName();
         String tableName = tableHandle.getSchemaTableName().getTableName();
         HBaseTable table = this.clientManager.getTable(schemaName, tableName);
         Preconditions.checkState(table != null, "Table %s.%s no longer exists", schemaName, tableName);
 
-        TupleDomain<ColumnHandle> constraint = layoutHandle.getConstraint();
+        TupleDomain<ColumnHandle> constraint = tableHandle.getConstraint();
 
         TableMetaInfo tableMetaInfo = Utils.getTableMetaInfoFromJson(schemaName, tableName, config.getMetaDir());
         Preconditions.checkState(tableMetaInfo != null,
@@ -421,7 +420,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                         if (!range.getLow().isLowerUnbounded()) {
                             switch (range.getLow().getBound()) {
                                 // >
-                                // != 部分1
+                                // != part 1
                                 case ABOVE:
                                     handles.add(new ConditionInfo(hch.getColumnName(), CONDITION_OPER.GT,
                                             range.getLow().getValue(), domain.getType()));

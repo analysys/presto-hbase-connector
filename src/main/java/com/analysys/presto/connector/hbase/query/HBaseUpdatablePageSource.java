@@ -12,7 +12,6 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Table;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,7 +89,7 @@ public class HBaseUpdatablePageSource implements UpdatablePageSource {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         inner.close();
     }
 }

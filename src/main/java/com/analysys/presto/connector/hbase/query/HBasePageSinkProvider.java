@@ -46,7 +46,7 @@ public class HBasePageSinkProvider implements ConnectorPageSinkProvider {
                 "insertTableHandle is not an instance of HBaseInsertTableHandle.");
         HBaseInsertTableHandle handle = (HBaseInsertTableHandle) insertTableHandle;
 
-        return new HBasePageSink(session, clientManager, handle);
+        return new HBasePageSink(clientManager, handle);
     }
 }
 

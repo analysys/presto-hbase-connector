@@ -104,7 +104,10 @@ public class HBaseGetRecordCursor extends HBaseRecordCursor {
     public boolean advanceNextPosition() {
         String colName = null;
         try {
-            if (this.results != null && this.currentRecordIndex >= this.results.length) {
+            // if we got error when reading data, return false to end this reading.
+            if (results == null) {
+                return false;
+            } else if (this.currentRecordIndex >= this.results.length) {
                 InetAddress localhost = InetAddress.getLocalHost();
                 // Random printing
                 if (System.currentTimeMillis() % SYSTEMOUT_INTERVAL == 0) {
