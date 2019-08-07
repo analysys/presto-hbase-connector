@@ -29,10 +29,10 @@ public class HBaseColumnMetadata extends ColumnMetadata {
     private boolean rowKey;
     private String family;
 
-    public HBaseColumnMetadata(String family, String name, Type type, boolean isRowKey) {
+    public HBaseColumnMetadata(String family, String name, Type type, boolean rowKey) {
         super(name, type);
         this.family = family;
-        this.rowKey = isRowKey;
+        this.rowKey = rowKey;
     }
 
     public String getFamily() {

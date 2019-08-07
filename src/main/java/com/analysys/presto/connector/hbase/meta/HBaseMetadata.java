@@ -262,7 +262,7 @@ public class HBaseMetadata implements ConnectorMetadata {
 
     private int findRowKeyChannel(List<ColumnMetaInfo> columns) {
         for (int i = 0; i < columns.size(); i++) {
-            if (columns.get(i).isIsRowKey()) {
+            if (columns.get(i).isRowKey()) {
                 return i;
             }
         }
@@ -296,7 +296,7 @@ public class HBaseMetadata implements ConnectorMetadata {
         requireNonNull(tableMetaInfo, String.format("Table %s.%s has no metadata, please check .json file under %s",
                 schemaName, tableName, hbaseClientManager.getConfig().getMetaDir() + "/" + schemaName));
 
-        Optional<ColumnMetaInfo> rowKeyOpt = tableMetaInfo.getColumns().stream().filter(ColumnMetaInfo::isIsRowKey).findFirst();
+        Optional<ColumnMetaInfo> rowKeyOpt = tableMetaInfo.getColumns().stream().filter(ColumnMetaInfo::isRowKey).findFirst();
         checkArgument(rowKeyOpt.isPresent(),
                 String.format("Table %s.%s has no rowKey! Please check .json file under %s",
                         schemaName, tableName, hbaseClientManager.getConfig().getMetaDir() + "/" + schemaName));
@@ -307,7 +307,7 @@ public class HBaseMetadata implements ConnectorMetadata {
         return new HBaseColumnHandle(CONNECTOR_NAME, /*rowKeyInfo.getFamily(),*/ "",
                 rowKeyInfo.getColumnName(), VarcharType.VARCHAR,
                 tableMetaInfo.getColumns().indexOf(rowKeyOpt.get()),
-                rowKeyInfo.isIsRowKey());
+                rowKeyInfo.isRowKey());
     }
 
     @Override

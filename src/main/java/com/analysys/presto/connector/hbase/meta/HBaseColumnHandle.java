@@ -33,7 +33,7 @@ public final class HBaseColumnHandle implements ColumnHandle {
     private final String family;
     private final String columnName;
     private final Type columnType;
-    private final boolean isRowKey;
+    private final boolean rowKey;
 
     /**
      * The index of a column in table, start from 0 to n-1(The table has n columns)
@@ -46,13 +46,13 @@ public final class HBaseColumnHandle implements ColumnHandle {
                              @JsonProperty("columnName") String columnName,
                              @JsonProperty("columnType") Type columnType,
                              @JsonProperty("ordinalPosition") int ordinalPosition,
-                             @JsonProperty("isRowKey") boolean isRowKey) {
+                             @JsonProperty("rowKey") boolean rowKey) {
         this.connectorId = Objects.requireNonNull(connectorId, "connectorId is null");
         this.family = Objects.requireNonNull(family, "family is null");
         this.columnName = Objects.requireNonNull(columnName, "columnName is null");
         this.columnType = Objects.requireNonNull(columnType, "columnType is null");
         this.ordinalPosition = ordinalPosition;
-        this.isRowKey = isRowKey;
+        this.rowKey = rowKey;
     }
 
     @JsonProperty
@@ -81,8 +81,8 @@ public final class HBaseColumnHandle implements ColumnHandle {
     }
 
     @JsonProperty
-    public boolean isIsRowKey() {
-        return isRowKey;
+    public boolean isRowKey() {
+        return rowKey;
     }
 
     @Override
@@ -115,7 +115,7 @@ public final class HBaseColumnHandle implements ColumnHandle {
                 ", family='" + family + '\'' +
                 ", columnName='" + columnName + '\'' +
                 ", columnType=" + columnType +
-                ", isRowKey=" + isRowKey +
+                ", rowKey=" + rowKey +
                 ", ordinalPosition=" + ordinalPosition +
                 '}';
     }

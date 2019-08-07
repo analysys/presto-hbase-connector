@@ -102,7 +102,7 @@ public class TableMetaInfo {
     public String getRowKeyColName() {
         if (isEmpty(rowKeyColName)) {
             for (ColumnMetaInfo c : this.columns) {
-                if (c.isIsRowKey()) {
+                if (c.isRowKey()) {
                     this.rowKeyColName = c.getColumnName();
                     break;
                 }

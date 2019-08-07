@@ -87,7 +87,6 @@ public class HBasePageSink implements ConnectorPageSink {
                 for (int channel = 0; channel < page.getChannelCount(); channel++) {
                     // The value of rowKey has been planted in object Put already,
                     // so we don't need to append it here.
-                    // if (this.tableMetaInfo.getColumns().get(channel).isIsRowKey()) {
                     if (channel == rowKeyColumnChannel) {
                         continue;
                     }
