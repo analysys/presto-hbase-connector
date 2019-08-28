@@ -44,8 +44,11 @@ public class HBaseRecordSetProvider implements ConnectorRecordSetProvider {
     }
 
     @Override
-    public RecordSet getRecordSet(ConnectorTransactionHandle transactionHandle,
-                                  ConnectorSession session, ConnectorSplit split, List columns) {
+    public RecordSet getRecordSet(ConnectorTransactionHandle transaction,
+                                  ConnectorSession session,
+                                  ConnectorSplit split,
+                                  ConnectorTableHandle table,
+                                  List<? extends ColumnHandle> columns) {
         Objects.requireNonNull(split, "partitionChunk is null");
         HBaseSplit hBaseSplit = (HBaseSplit) split;
         Preconditions.checkArgument(

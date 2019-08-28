@@ -282,7 +282,7 @@ public class Utils {
         for (int j = 0; j < ss.length; j++) {
             String ele = ss[j];
             if (j > 0) {
-                ele = ele.substring(1, ele.length());
+                ele = ele.substring(1);
             } else {
                 buff.append(ARRAY_STRING_SPLITTER);
             }

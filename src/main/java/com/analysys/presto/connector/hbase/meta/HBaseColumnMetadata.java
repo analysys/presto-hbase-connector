@@ -26,23 +26,13 @@ import java.util.Objects;
  */
 public class HBaseColumnMetadata extends ColumnMetadata {
 
-    private boolean isRowKey = false;
-    private String family = null;
+    private boolean rowKey;
+    private String family;
 
-    public HBaseColumnMetadata(String family, String name, Type type, boolean isRowKey) {
+    public HBaseColumnMetadata(String family, String name, Type type, boolean rowKey) {
         super(name, type);
         this.family = family;
-        this.isRowKey = isRowKey;
-    }
-
-    public HBaseColumnMetadata(String family, String name, Type type, boolean isRowKey, String comment, boolean hidden) {
-        super(name, type, comment, null, hidden);
-        this.family = family;
-        this.isRowKey = isRowKey;
-    }
-
-    public HBaseColumnMetadata(String name, Type type, String comment, String extraInfo, boolean hidden) {
-        super(name, type, comment, extraInfo, hidden);
+        this.rowKey = rowKey;
     }
 
     public String getFamily() {
@@ -53,12 +43,12 @@ public class HBaseColumnMetadata extends ColumnMetadata {
         this.family = family;
     }
 
-    public boolean isIsRowKey() {
-        return this.isRowKey;
+    public boolean isRowKey() {
+        return rowKey;
     }
 
-    public void setIsRowKey(boolean isRowKey) {
-        this.isRowKey = isRowKey;
+    public void setRowKey(boolean rowKey) {
+        this.rowKey = rowKey;
     }
 
     @Override

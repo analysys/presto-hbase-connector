@@ -29,6 +29,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,15 +117,10 @@ public class HBaseRecordCursor implements RecordCursor {
     }
 
     private Object getFieldValue(int field) {
-        if (ordinalPositionAndFieldsIndexMap.containsKey(columnHandles.get(field).getOrdinalPosition())) {
-            return fields[ordinalPositionAndFieldsIndexMap.get(columnHandles.get(field).getOrdinalPosition())];
-        } else {
-            return null;
-            /*log.error("Cannot find the value of field index " + field
-                    + ", field array is " + Arrays.toString(fields)
-                    + ", split=" + split.toString());
-            return "ERROR_VALUE";*/
-        }
+        Preconditions.checkState(ordinalPositionAndFieldsIndexMap.containsKey(columnHandles.get(field).getOrdinalPosition()),
+                String.format("Cannot find the value of field index %d, field array is %s, split=%s",
+                        field, Arrays.toString(fields), split.toString()));
+        return fields[ordinalPositionAndFieldsIndexMap.get(columnHandles.get(field).getOrdinalPosition())];
     }
 
     /**
@@ -244,7 +240,7 @@ public class HBaseRecordCursor implements RecordCursor {
                 expected, actual);
     }
 
-    public void setRowKeyValue2FieldsAry(Result record, int fieldIndex) {
+    void setRowKeyValue2FieldsAry(Result record, int fieldIndex) {
         // Handle the value of rowKey
         // Check out whether columns to be queried contain rowKey field
         if (fieldIndexMap.containsKey(this.rowKeyColName.hashCode())) {

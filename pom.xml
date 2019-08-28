@@ -14,7 +14,7 @@
 
     <groupId>com.analysys.presto</groupId>
     <artifactId>prestosql-hbase-315-ops</artifactId>
-    <version>meta-0.1.3</version>
+    <version>meta-0.1.4</version>
 
     <description>PrestoSql - HBase Connector</description>
 

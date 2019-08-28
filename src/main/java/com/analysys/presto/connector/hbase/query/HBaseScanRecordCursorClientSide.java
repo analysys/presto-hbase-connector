@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * HBase clientSideRegionScanner.
- * Thunder go ahead!
+ * Heats go ahead!
  * Created by wupeng on 2018/1/19.
  */
 class HBaseScanRecordCursorClientSide extends HBaseRecordCursor {

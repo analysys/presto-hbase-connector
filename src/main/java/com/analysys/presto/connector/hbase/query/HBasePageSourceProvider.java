@@ -48,8 +48,8 @@ public class HBasePageSourceProvider implements ConnectorPageSourceProvider {
                                                 ConnectorSplit split,
                                                 ConnectorTableHandle table,
                                                 List<ColumnHandle> columns) {
-        HBaseRecordSet recordSet = (HBaseRecordSet) recordSetProvider.getRecordSet(transactionHandle, session, split, columns);
-        if (columns.stream().anyMatch(ch -> ((HBaseColumnHandle) ch).isIsRowKey())) {
+        HBaseRecordSet recordSet = (HBaseRecordSet) recordSetProvider.getRecordSet(transactionHandle, session, split, table, columns);
+        if (columns.stream().anyMatch(ch -> ((HBaseColumnHandle) ch).isRowKey())) {
             return new HBaseUpdatablePageSource(recordSet, hbaseClientManager);
         } else {
             return new RecordPageSource(recordSet);
