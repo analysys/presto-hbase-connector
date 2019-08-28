@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!--
+    <!-- for local debug
     <parent>
         <groupId>io.prestosql</groupId>
         <artifactId>presto-root</artifactId>
@@ -12,10 +12,12 @@
     <packaging>presto-plugin</packaging>
     -->
 
+    <!-- for deploy -->
     <groupId>com.analysys.presto</groupId>
-    <artifactId>prestosql-hbase-315-ops</artifactId>
     <version>meta-0.1.4</version>
 
+
+    <artifactId>prestosql-hbase-315-ops</artifactId>
     <description>PrestoSql - HBase Connector</description>
 
     <properties>
