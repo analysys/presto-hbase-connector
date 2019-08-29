@@ -13,11 +13,11 @@
  */
 package com.analysys.presto.connector.hbase.meta;
 
+import com.facebook.presto.spi.ColumnHandle;
+import com.facebook.presto.spi.ColumnMetadata;
+import com.facebook.presto.spi.type.Type;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.prestosql.spi.connector.ColumnHandle;
-import io.prestosql.spi.connector.ColumnMetadata;
-import io.prestosql.spi.type.Type;
 
 import java.util.Objects;
 
@@ -33,7 +33,7 @@ public final class HBaseColumnHandle implements ColumnHandle {
     private final String family;
     private final String columnName;
     private final Type columnType;
-    private final boolean rowKey;
+    private final boolean isRowKey;
 
     /**
      * The index of a column in table, start from 0 to n-1(The table has n columns)
@@ -46,13 +46,13 @@ public final class HBaseColumnHandle implements ColumnHandle {
                              @JsonProperty("columnName") String columnName,
                              @JsonProperty("columnType") Type columnType,
                              @JsonProperty("ordinalPosition") int ordinalPosition,
-                             @JsonProperty("rowKey") boolean rowKey) {
+                             @JsonProperty("isRowKey") boolean isRowKey) {
         this.connectorId = Objects.requireNonNull(connectorId, "connectorId is null");
         this.family = Objects.requireNonNull(family, "family is null");
         this.columnName = Objects.requireNonNull(columnName, "columnName is null");
         this.columnType = Objects.requireNonNull(columnType, "columnType is null");
         this.ordinalPosition = ordinalPosition;
-        this.rowKey = rowKey;
+        this.isRowKey = isRowKey;
     }
 
     @JsonProperty
@@ -75,14 +75,18 @@ public final class HBaseColumnHandle implements ColumnHandle {
         return this.ordinalPosition;
     }
 
+    public ColumnMetadata getColumnMetadata() {
+        return new ColumnMetadata(this.columnName, this.columnType);
+    }
+
     @JsonProperty
     public String getFamily() {
         return family;
     }
 
     @JsonProperty
-    public boolean isRowKey() {
-        return rowKey;
+    public boolean isIsRowKey() {
+        return isRowKey;
     }
 
     @Override
@@ -104,7 +108,7 @@ public final class HBaseColumnHandle implements ColumnHandle {
         }
     }
 
-    ColumnMetadata toColumnMetadata() {
+    public ColumnMetadata toColumnMetadata() {
         return new ColumnMetadata(columnName, columnType);
     }
 
@@ -115,7 +119,7 @@ public final class HBaseColumnHandle implements ColumnHandle {
                 ", family='" + family + '\'' +
                 ", columnName='" + columnName + '\'' +
                 ", columnType=" + columnType +
-                ", rowKey=" + rowKey +
+                ", isRowKey=" + isRowKey +
                 ", ordinalPosition=" + ordinalPosition +
                 '}';
     }

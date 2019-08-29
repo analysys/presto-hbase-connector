@@ -15,10 +15,10 @@ package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
+import com.facebook.presto.spi.ColumnHandle;
+import com.facebook.presto.spi.type.Type;
 import com.google.common.base.Preconditions;
 import io.airlift.log.Logger;
-import io.prestosql.spi.connector.ColumnHandle;
-import io.prestosql.spi.type.Type;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -104,10 +104,7 @@ public class HBaseGetRecordCursor extends HBaseRecordCursor {
     public boolean advanceNextPosition() {
         String colName = null;
         try {
-            // if we got error when reading data, return false to end this reading.
-            if (results == null) {
-                return false;
-            } else if (this.currentRecordIndex >= this.results.length) {
+            if (this.results != null && this.currentRecordIndex >= this.results.length) {
                 InetAddress localhost = InetAddress.getLocalHost();
                 // Random printing
                 if (System.currentTimeMillis() % SYSTEMOUT_INTERVAL == 0) {

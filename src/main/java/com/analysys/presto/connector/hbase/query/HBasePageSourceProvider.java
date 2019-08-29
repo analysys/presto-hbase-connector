@@ -18,7 +18,9 @@ package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
-import io.prestosql.spi.connector.*;
+import com.facebook.presto.spi.*;
+import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
+import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -44,12 +46,9 @@ public class HBasePageSourceProvider implements ConnectorPageSourceProvider {
 
     @Override
     public ConnectorPageSource createPageSource(ConnectorTransactionHandle transactionHandle,
-                                                ConnectorSession session,
-                                                ConnectorSplit split,
-                                                ConnectorTableHandle table,
-                                                List<ColumnHandle> columns) {
-        HBaseRecordSet recordSet = (HBaseRecordSet) recordSetProvider.getRecordSet(transactionHandle, session, split, table, columns);
-        if (columns.stream().anyMatch(ch -> ((HBaseColumnHandle) ch).isRowKey())) {
+                                                ConnectorSession session, ConnectorSplit split, List<ColumnHandle> columns) {
+        HBaseRecordSet recordSet = (HBaseRecordSet) recordSetProvider.getRecordSet(transactionHandle, session, split, columns);
+        if (columns.stream().anyMatch(ch -> ((HBaseColumnHandle) ch).isIsRowKey())) {
             return new HBaseUpdatablePageSource(recordSet, hbaseClientManager);
         } else {
             return new RecordPageSource(recordSet);

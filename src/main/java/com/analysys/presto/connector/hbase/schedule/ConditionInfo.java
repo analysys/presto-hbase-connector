@@ -14,16 +14,16 @@
 package com.analysys.presto.connector.hbase.schedule;
 
 import com.analysys.presto.connector.hbase.utils.Constant;
+import com.facebook.presto.spi.type.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
-import io.prestosql.spi.type.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.math.BigDecimal;
 
-import static io.prestosql.spi.type.IntegerType.INTEGER;
+import static com.facebook.presto.spi.type.IntegerType.INTEGER;
 
 /**
  * Condition info

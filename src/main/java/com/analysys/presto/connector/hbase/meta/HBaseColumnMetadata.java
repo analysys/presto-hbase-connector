@@ -13,8 +13,8 @@
  */
 package com.analysys.presto.connector.hbase.meta;
 
-import io.prestosql.spi.connector.ColumnMetadata;
-import io.prestosql.spi.type.Type;
+import com.facebook.presto.spi.ColumnMetadata;
+import com.facebook.presto.spi.type.Type;
 
 import java.util.Objects;
 
@@ -26,13 +26,23 @@ import java.util.Objects;
  */
 public class HBaseColumnMetadata extends ColumnMetadata {
 
-    private boolean rowKey;
-    private String family;
+    private boolean isRowKey = false;
+    private String family = null;
 
-    public HBaseColumnMetadata(String family, String name, Type type, boolean rowKey) {
+    public HBaseColumnMetadata(String family, String name, Type type, boolean isRowKey) {
         super(name, type);
         this.family = family;
-        this.rowKey = rowKey;
+        this.isRowKey = isRowKey;
+    }
+
+    public HBaseColumnMetadata(String family, String name, Type type, boolean isRowKey, String comment, boolean hidden) {
+        super(name, type, comment, null, hidden);
+        this.family = family;
+        this.isRowKey = isRowKey;
+    }
+
+    public HBaseColumnMetadata(String name, Type type, String comment, String extraInfo, boolean hidden) {
+        super(name, type, comment, extraInfo, hidden);
     }
 
     public String getFamily() {
@@ -43,12 +53,12 @@ public class HBaseColumnMetadata extends ColumnMetadata {
         this.family = family;
     }
 
-    public boolean isRowKey() {
-        return rowKey;
+    public boolean isIsRowKey() {
+        return this.isRowKey;
     }
 
-    public void setRowKey(boolean rowKey) {
-        this.rowKey = rowKey;
+    public void setIsRowKey(boolean isRowKey) {
+        this.isRowKey = isRowKey;
     }
 
     @Override

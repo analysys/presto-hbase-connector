@@ -13,14 +13,15 @@
  */
 package com.analysys.presto.connector.hbase.frame;
 
+import com.facebook.presto.spi.ConnectorHandleResolver;
+import com.facebook.presto.spi.connector.Connector;
+import com.facebook.presto.spi.connector.ConnectorContext;
+import com.facebook.presto.spi.connector.ConnectorFactory;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import io.airlift.bootstrap.Bootstrap;
+import io.airlift.json.JsonModule;
 import io.airlift.log.Logger;
-import io.prestosql.spi.NodeManager;
-import io.prestosql.spi.connector.Connector;
-import io.prestosql.spi.connector.ConnectorContext;
-import io.prestosql.spi.connector.ConnectorFactory;
-import io.prestosql.spi.connector.ConnectorHandleResolver;
 
 import java.util.Map;
 import java.util.Objects;
@@ -48,18 +49,11 @@ public class HBaseConnectorFactory implements ConnectorFactory {
     }
 
     @Override
-    public Connector create(String connectorId, Map<String, String> requiredConfig, ConnectorContext context) {
+    public Connector create(String connectorId, Map requiredConfig, ConnectorContext context) {
         Objects.requireNonNull(requiredConfig, "requiredConfig is null");
         try {
-            Bootstrap e = new Bootstrap(
-                    binder -> binder.bind(NodeManager.class).toInstance(context.getNodeManager()),
-                    new HBaseModule(connectorId, context.getTypeManager()));
-
-            Injector injector = e.strictConfig()
-                    .doNotInitializeLogging()
-                    .setRequiredConfigurationProperties(requiredConfig)
-                    .initialize();
-
+            Bootstrap e = new Bootstrap(new Module[]{new JsonModule(), new HBaseModule(connectorId, context.getTypeManager())});
+            Injector injector = e.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(requiredConfig).initialize();
             return injector.getInstance(HBaseConnector.class);
         } catch (Exception e) {
             log.error(e, e.getMessage());

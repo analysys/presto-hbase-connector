@@ -17,15 +17,15 @@ import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.frame.HBaseConnectorId;
 import com.analysys.presto.connector.hbase.utils.Constant;
 import com.analysys.presto.connector.hbase.utils.Utils;
+import com.facebook.presto.spi.*;
+import com.facebook.presto.spi.connector.ConnectorMetadata;
+import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
+import com.facebook.presto.spi.type.Type;
+import com.facebook.presto.spi.type.VarcharType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
-import io.prestosql.spi.connector.*;
-import io.prestosql.spi.predicate.TupleDomain;
-import io.prestosql.spi.statistics.ComputedStatistics;
-import io.prestosql.spi.type.Type;
-import io.prestosql.spi.type.VarcharType;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 
@@ -80,11 +80,11 @@ public class HBaseMetadata implements ConnectorMetadata {
         return connectorTableHandle;
     }
 
-    /*@Override
+    @Override
     public List<ConnectorTableLayoutResult> getTableLayouts(ConnectorSession connectorSession,
                                                             ConnectorTableHandle connectorTableHandle,
-                                                            Constraint constraint,
-                                                            Optional<Set<ColumnHandle>> desiredColumns) {
+                                                            Constraint<ColumnHandle> constraint,
+                                                            Optional<Set<ColumnHandle>> optional) {
         HBaseTableHandle tableHandle = checkType(connectorTableHandle, HBaseTableHandle.class, "tableHandle");
         ConnectorTableLayout layout = new ConnectorTableLayout(
                 new HBaseTableLayoutHandle(tableHandle, constraint.getSummary()));
@@ -96,7 +96,7 @@ public class HBaseMetadata implements ConnectorMetadata {
                                                ConnectorTableLayoutHandle connectorTableLayoutHandle) {
         HBaseTableLayoutHandle layout = checkType(connectorTableLayoutHandle, HBaseTableLayoutHandle.class, "layout");
         return new ConnectorTableLayout(layout);
-    }*/
+    }
 
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession connectorSession,
@@ -121,11 +121,11 @@ public class HBaseMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public List<SchemaTableName> listTables(ConnectorSession connectorSession, Optional<String> schemaName) {
+    public List<SchemaTableName> listTables(ConnectorSession connectorSession, String schema) {
         Admin admin = hbaseClientManager.getAdmin();
         List<SchemaTableName> schemaTableNames;
         try {
-            schemaTableNames = new ArrayList<>(hbaseTables.getTables(admin, schemaName.orElse("")).keySet());
+            schemaTableNames = new ArrayList<>(hbaseTables.getTables(admin, schema).keySet());
         } finally {
             if (admin != null) {
                 hbaseClientManager.close(admin);
@@ -150,7 +150,7 @@ public class HBaseMetadata implements ConnectorMetadata {
                 columnHandles.put(column.getName(),
                         new HBaseColumnHandle(
                                 connectorId.getId(), column.getFamily(), column.getName(),
-                                column.getType(), index, column.isRowKey()));
+                                column.getType(), index, column.isIsRowKey()));
             }
             return columnHandles.build();
         }
@@ -180,9 +180,9 @@ public class HBaseMetadata implements ConnectorMetadata {
     }
 
     private List<SchemaTableName> listTables(ConnectorSession session, SchemaTablePrefix prefix) {
-        return (prefix.getSchema().isPresent() ?
-                this.listTables(session, prefix.getSchema()) :
-                ImmutableList.of(new SchemaTableName("", prefix.getTable().orElse(""))));
+        return (prefix.getSchemaName() == null ?
+                this.listTables(session, prefix.getSchemaName()) :
+                ImmutableList.of(new SchemaTableName(prefix.getSchemaName(), prefix.getTableName())));
     }
 
     @Override
@@ -262,7 +262,7 @@ public class HBaseMetadata implements ConnectorMetadata {
 
     private int findRowKeyChannel(List<ColumnMetaInfo> columns) {
         for (int i = 0; i < columns.size(); i++) {
-            if (columns.get(i).isRowKey()) {
+            if (columns.get(i).isIsRowKey()) {
                 return i;
             }
         }
@@ -271,13 +271,12 @@ public class HBaseMetadata implements ConnectorMetadata {
         return -1;
     }
 
-    @Override
+    /*@Override
     public Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session,
                                                           ConnectorInsertTableHandle insertHandle,
-                                                          Collection<Slice> fragments,
-                                                          Collection<ComputedStatistics> computedStatistics) {
+                                                          Collection<Slice> fragments) {
         return Optional.empty();
-    }
+    }*/
 
     private HBaseTableHandle fromConnectorTableHandle(ConnectorTableHandle tableHandle) {
         return checkType(tableHandle, HBaseTableHandle.class, "tableHandle");
@@ -296,7 +295,7 @@ public class HBaseMetadata implements ConnectorMetadata {
         requireNonNull(tableMetaInfo, String.format("Table %s.%s has no metadata, please check .json file under %s",
                 schemaName, tableName, hbaseClientManager.getConfig().getMetaDir() + "/" + schemaName));
 
-        Optional<ColumnMetaInfo> rowKeyOpt = tableMetaInfo.getColumns().stream().filter(ColumnMetaInfo::isRowKey).findFirst();
+        Optional<ColumnMetaInfo> rowKeyOpt = tableMetaInfo.getColumns().stream().filter(ColumnMetaInfo::isIsRowKey).findFirst();
         checkArgument(rowKeyOpt.isPresent(),
                 String.format("Table %s.%s has no rowKey! Please check .json file under %s",
                         schemaName, tableName, hbaseClientManager.getConfig().getMetaDir() + "/" + schemaName));
@@ -307,7 +306,7 @@ public class HBaseMetadata implements ConnectorMetadata {
         return new HBaseColumnHandle(CONNECTOR_NAME, /*rowKeyInfo.getFamily(),*/ "",
                 rowKeyInfo.getColumnName(), VarcharType.VARCHAR,
                 tableMetaInfo.getColumns().indexOf(rowKeyOpt.get()),
-                rowKeyInfo.isRowKey());
+                rowKeyInfo.isIsRowKey());
     }
 
     @Override
@@ -319,36 +318,21 @@ public class HBaseMetadata implements ConnectorMetadata {
     public void finishDelete(ConnectorSession session, ConnectorTableHandle tableHandle, Collection<Slice> fragments) {
     }
 
-    @Override
+    /*@Override
     public boolean supportsMetadataDelete(ConnectorSession session, ConnectorTableHandle tableHandle, ConnectorTableLayoutHandle tableLayoutHandle) {
         return false;
-    }
+    }*/
     // --------------- support delete function end ---------------
 
-
-    @Override
-    public ConnectorTableProperties getTableProperties(ConnectorSession session, ConnectorTableHandle table) {
-        return new ConnectorTableProperties();
-    }
-
-    @Override
-    public boolean usesLegacyTableLayouts() {
-        return false;
-    }
-
-    @Override
-    public Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilter(ConnectorSession session,
-                                                                                   ConnectorTableHandle handle,
-                                                                                   Constraint constraint) {
-        HBaseTableHandle tableHandle = (HBaseTableHandle) handle;
-        TupleDomain<ColumnHandle> oldDomain = tableHandle.getConstraint();
-        TupleDomain<ColumnHandle> newDomain = oldDomain.intersect(constraint.getSummary());
-        if (oldDomain.equals(newDomain)) {
-            return Optional.empty();
-        }
-        tableHandle = new HBaseTableHandle(tableHandle.getSchemaTableName(), newDomain);
-        return Optional.of(new ConstraintApplicationResult<>(tableHandle, constraint.getSummary()));
-    }
 }
+
+
+
+
+
+
+
+
+
 
 

@@ -19,14 +19,16 @@ import com.analysys.presto.connector.hbase.meta.*;
 import com.analysys.presto.connector.hbase.utils.Constant;
 import com.analysys.presto.connector.hbase.utils.TimeTicker;
 import com.analysys.presto.connector.hbase.utils.Utils;
+import com.facebook.presto.spi.*;
+import com.facebook.presto.spi.connector.ConnectorSplitManager;
+import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import com.facebook.presto.spi.predicate.Domain;
+import com.facebook.presto.spi.predicate.Range;
+import com.facebook.presto.spi.predicate.TupleDomain;
 import com.google.common.base.Preconditions;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
-import io.prestosql.spi.HostAddress;
-import io.prestosql.spi.connector.*;
-import io.prestosql.spi.predicate.Domain;
-import io.prestosql.spi.predicate.Range;
-import io.prestosql.spi.predicate.TupleDomain;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.client.Admin;
 
@@ -35,7 +37,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
-import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
+
 
 /**
  * HBase split manager
@@ -61,19 +63,22 @@ public class HBaseSplitManager implements ConnectorSplitManager {
     }
 
     @Override
-    public ConnectorSplitSource getSplits(
-            ConnectorTransactionHandle transaction,
+    public ConnectorSplitSource getSplits(/*ConnectorTransactionHandle transactionHandle,
+                                          ConnectorSession session,
+                                          ConnectorTableLayoutHandle layout,
+                                          SplitSchedulingContext splitSchedulingContext*/
+            ConnectorTransactionHandle transactionHandle,
             ConnectorSession session,
-            ConnectorTableHandle connectorTableHandle,
+            ConnectorTableLayoutHandle layout,
             SplitSchedulingStrategy splitSchedulingStrategy) {
-        HBaseTableHandle tableHandle = (HBaseTableHandle) connectorTableHandle;
-
+        HBaseTableLayoutHandle layoutHandle = (HBaseTableLayoutHandle) layout;
+        HBaseTableHandle tableHandle = layoutHandle.getTable();
         String schemaName = tableHandle.getSchemaTableName().getSchemaName();
         String tableName = tableHandle.getSchemaTableName().getTableName();
         HBaseTable table = this.clientManager.getTable(schemaName, tableName);
         Preconditions.checkState(table != null, "Table %s.%s no longer exists", schemaName, tableName);
 
-        TupleDomain<ColumnHandle> constraint = tableHandle.getConstraint();
+        TupleDomain<ColumnHandle> constraint = layoutHandle.getConstraint();
 
         TableMetaInfo tableMetaInfo = Utils.getTableMetaInfoFromJson(schemaName, tableName, config.getMetaDir());
         Preconditions.checkState(tableMetaInfo != null,
@@ -227,7 +232,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         List<String> startKeyList;
 
         // make startKey by rowKey format.
-        if (!conditions.isEmpty() && !isEmpty(tableMetaInfo.getRowKeyFormat())) {
+        if (!conditions.isEmpty() && !StringUtils.isEmpty(tableMetaInfo.getRowKeyFormat())) {
             startKeyList = getScanStartKey(conditions, "", tableMetaInfo.getRowKeyFormat().split(","), 0);
         } else {
             startKeyList = new ArrayList<>();
@@ -322,7 +327,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 salt = Utils.addZeroPrefix(String.valueOf(i),
                         String.valueOf(saltUpper).length() - String.valueOf(i).length());
                 String saltyStartKey;
-                if (isEmpty(startKey)) {
+                if (StringUtils.isEmpty(startKey)) {
                     saltyStartKey = salt;
                 } else {
                     saltyStartKey = salt + rowKeySplitter + startKey;
@@ -358,7 +363,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         for (ConditionInfo condition : formatCondition) {
             tmpStartKeys.addAll(
                     getScanStartKey(conditions,
-                            tmpStartKey + ((isEmpty(tmpStartKey) ? "" : ",") + condition.valueToString()),
+                            tmpStartKey + ((StringUtils.isEmpty(tmpStartKey) ? "" : ",") + condition.valueToString()),
                             rowKeyFormat,
                             formatIndex + 1)
             );
@@ -420,7 +425,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                         if (!range.getLow().isLowerUnbounded()) {
                             switch (range.getLow().getBound()) {
                                 // >
-                                // != part 1
+                                // != 部分1
                                 case ABOVE:
                                     handles.add(new ConditionInfo(hch.getColumnName(), CONDITION_OPER.GT,
                                             range.getLow().getValue(), domain.getType()));

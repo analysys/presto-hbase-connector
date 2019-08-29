@@ -21,13 +21,13 @@ import com.analysys.presto.connector.hbase.query.HBasePageSinkProvider;
 import com.analysys.presto.connector.hbase.query.HBasePageSourceProvider;
 import com.analysys.presto.connector.hbase.query.HBaseRecordSetProvider;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplitManager;
+import com.facebook.presto.spi.connector.ConnectorPageSinkProvider;
+import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
+import com.facebook.presto.spi.type.TypeManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import io.airlift.configuration.ConfigBinder;
-import io.prestosql.spi.connector.ConnectorPageSinkProvider;
-import io.prestosql.spi.connector.ConnectorPageSourceProvider;
-import io.prestosql.spi.type.TypeManager;
 
 import java.util.Objects;
 

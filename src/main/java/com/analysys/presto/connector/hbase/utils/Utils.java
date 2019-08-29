@@ -16,13 +16,13 @@ package com.analysys.presto.connector.hbase.utils;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnMetadata;
 import com.analysys.presto.connector.hbase.meta.TableMetaInfo;
 import com.analysys.presto.connector.hbase.schedule.ConditionInfo;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.facebook.presto.jdbc.internal.jackson.databind.ObjectMapper;
+import com.facebook.presto.spi.ColumnMetadata;
+import com.facebook.presto.spi.type.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.airlift.log.Logger;
-import io.prestosql.spi.connector.ColumnMetadata;
-import io.prestosql.spi.type.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -119,7 +119,7 @@ public class Utils {
                 String type = temp.getString(JSON_TABLEMETA_TYPE);
                 boolean isRowKey = temp.getBoolean(JSON_TABLEMETA_ISROWKEY);
                 columnsMetadata.add(new HBaseColumnMetadata(family, columnName, matchType(type), isRowKey));
-                if (isRowKey) {
+                if (isRowKey)  {
                     hasRowKey = true;
                 }
             }
@@ -282,17 +282,13 @@ public class Utils {
         for (int j = 0; j < ss.length; j++) {
             String ele = ss[j];
             if (j > 0) {
-                ele = ele.substring(1);
+                ele = ele.substring(1, ele.length());
             } else {
                 buff.append(ARRAY_STRING_SPLITTER);
             }
             buff.append(ele);
         }
         return buff.toString();
-    }
-
-    public static boolean isEmpty(String str) {
-        return str == null || "".equals(str);
     }
 
 }

@@ -16,9 +16,10 @@ package com.analysys.presto.connector.hbase.frame;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseTableHandle;
-// import com.analysys.presto.connector.hbase.meta.HBaseTableLayoutHandle;
+import com.analysys.presto.connector.hbase.meta.HBaseTableLayoutHandle;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplit;
-import io.prestosql.spi.connector.*;
+import com.facebook.presto.spi.ConnectorHandleResolver;
+import com.facebook.presto.spi.ConnectorInsertTableHandle;
 
 /**
  * HBase handle resolver
@@ -29,22 +30,27 @@ import io.prestosql.spi.connector.*;
 public class HBaseHandleResolver implements ConnectorHandleResolver {
 
     @Override
-    public Class<? extends ConnectorTableHandle> getTableHandleClass() {
+    public Class getTableLayoutHandleClass() {
+        return HBaseTableLayoutHandle.class;
+    }
+
+    @Override
+    public Class getTableHandleClass() {
         return HBaseTableHandle.class;
     }
 
     @Override
-    public Class<? extends ColumnHandle> getColumnHandleClass() {
+    public Class getColumnHandleClass() {
         return HBaseColumnHandle.class;
     }
 
     @Override
-    public Class<? extends ConnectorSplit> getSplitClass() {
+    public Class getSplitClass() {
         return HBaseSplit.class;
     }
 
     @Override
-    public Class<? extends ConnectorTransactionHandle> getTransactionHandleClass() {
+    public Class getTransactionHandleClass() {
         return HBaseTransactionHandle.class;
     }
 

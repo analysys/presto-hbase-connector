@@ -13,8 +13,6 @@
  */
 package com.analysys.presto.connector.hbase.meta;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Column meta info
  *
@@ -26,9 +24,7 @@ public class ColumnMetaInfo {
     private String columnName = null;
     private String comment = null;
     private String type = null;
-
-    @JsonProperty("isRowKey")
-    private boolean rowKey = false;
+    private boolean isRowKey = false;
 
     public String getFamily() {
         return family;
@@ -62,12 +58,12 @@ public class ColumnMetaInfo {
         this.type = type;
     }
 
-    public boolean isRowKey() {
-        return rowKey;
+    public boolean isIsRowKey() {
+        return isRowKey;
     }
 
-    public void setRowKey(boolean rowKey) {
-        this.rowKey = rowKey;
+    public void setIsRowKey(boolean isRowKey) {
+        this.isRowKey = isRowKey;
     }
 
     @Override
@@ -78,7 +74,7 @@ public class ColumnMetaInfo {
                 ", comment='" + comment + '\'' +
                 ", type='" + type + '\'' +
                 // ", ordinalPosition=" + ordinalPosition +
-                ", rowKey=" + rowKey +
+                ", isIsRowKey=" + isRowKey +
                 '}';
     }
 }

@@ -14,10 +14,9 @@
 package com.analysys.presto.connector.hbase.meta;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
+import com.facebook.presto.spi.SchemaTableName;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
-import io.prestosql.spi.connector.SchemaTableName;
-import io.prestosql.spi.predicate.TupleDomain;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
@@ -65,7 +64,7 @@ public class HBaseTables {
                 Objects.requireNonNull(tableName, "tableName cannot be null!");
                 SchemaTableName schemaTableName = new SchemaTableName(schema, tableName);
 
-                tablesBuilder.put(schemaTableName, new HBaseTableHandle(schemaTableName, TupleDomain.all()));
+                tablesBuilder.put(schemaTableName, new HBaseTableHandle(schemaTableName));
             }
             tables = tablesBuilder.build();
             return tables;
@@ -101,7 +100,7 @@ public class HBaseTables {
         return set;
     }
 
-    void dropTable(String schema, String tableName) {
+    public boolean dropTable(String schema, String tableName) {
         Admin admin = null;
         try {
             admin = hbaseClientManager.getAdmin();
@@ -109,11 +108,13 @@ public class HBaseTables {
             admin.deleteTable(TableName.valueOf(schema + ":" + tableName));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            return false;
         } finally {
             if (admin != null) {
                 hbaseClientManager.close(admin);
             }
         }
+        return true;
     }
 
 }

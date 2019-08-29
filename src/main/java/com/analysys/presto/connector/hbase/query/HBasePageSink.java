@@ -1,21 +1,23 @@
 package com.analysys.presto.connector.hbase.query;
 
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
+import com.analysys.presto.connector.hbase.meta.HBaseExtendedTableHandle;
 import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
 import com.analysys.presto.connector.hbase.utils.Utils;
+import com.facebook.presto.spi.ConnectorPageSink;
+import com.facebook.presto.spi.ConnectorSession;
+import com.facebook.presto.spi.Page;
+import com.facebook.presto.spi.block.Block;
+import com.facebook.presto.spi.block.DictionaryBlock;
+import com.facebook.presto.spi.block.VariableWidthBlock;
+import com.facebook.presto.spi.type.DecimalType;
+import com.facebook.presto.spi.type.SqlDecimal;
+import com.facebook.presto.spi.type.StandardTypes;
+import com.facebook.presto.spi.type.Type;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
-import io.prestosql.spi.Page;
-import io.prestosql.spi.block.Block;
-import io.prestosql.spi.block.DictionaryBlock;
-import io.prestosql.spi.block.VariableWidthBlock;
-import io.prestosql.spi.connector.ConnectorPageSink;
-import io.prestosql.spi.type.DecimalType;
-import io.prestosql.spi.type.SqlDecimal;
-import io.prestosql.spi.type.StandardTypes;
-import io.prestosql.spi.type.Type;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Put;
@@ -28,12 +30,12 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.analysys.presto.connector.hbase.utils.Constant.ARRAY_STRING_SPLITTER;
 import static com.analysys.presto.connector.hbase.utils.Constant.SYSTEMOUT_INTERVAL;
-import static io.prestosql.spi.type.BigintType.BIGINT;
-import static io.prestosql.spi.type.BooleanType.BOOLEAN;
-import static io.prestosql.spi.type.DoubleType.DOUBLE;
-import static io.prestosql.spi.type.IntegerType.INTEGER;
-import static io.prestosql.spi.type.TimestampType.TIMESTAMP;
-import static io.prestosql.spi.type.Varchars.isVarcharType;
+import static com.facebook.presto.spi.type.BigintType.BIGINT;
+import static com.facebook.presto.spi.type.BooleanType.BOOLEAN;
+import static com.facebook.presto.spi.type.DoubleType.DOUBLE;
+import static com.facebook.presto.spi.type.IntegerType.INTEGER;
+import static com.facebook.presto.spi.type.TimestampType.TIMESTAMP;
+import static com.facebook.presto.spi.type.Varchars.isVarcharType;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -55,19 +57,20 @@ public class HBasePageSink implements ConnectorPageSink {
     private final int rowKeyColumnChannel;
     private final Map<String, String> colNameAndFamilyNameMap;
 
-    public HBasePageSink(HBaseClientManager clientManager,
-                         HBaseInsertTableHandle insertTableHandle) {
+    public HBasePageSink(ConnectorSession connectorSession, HBaseClientManager clientManager,
+                         HBaseExtendedTableHandle extendedTableHandle) {
         requireNonNull(clientManager, "clientManager is null");
-        this.columnTypes = insertTableHandle.getColumnTypes();
-        this.columnNames = insertTableHandle.getColumnNames();
+        this.columnTypes = extendedTableHandle.getColumnTypes();
+        this.columnNames = extendedTableHandle.getColumnNames();
 
         this.clientManager = clientManager;
+        HBaseInsertTableHandle insertTableHandle = (HBaseInsertTableHandle) extendedTableHandle;
         this.rowKeyColumnChannel = insertTableHandle.getRowKeyColumnChannel();
         this.colNameAndFamilyNameMap = insertTableHandle.getColNameAndFamilyNameMap();
 
         try {
-            this.tableName = insertTableHandle.getSchemaTableName().getTableName();
-            this.schemaName = insertTableHandle.getSchemaTableName().getSchemaName();
+            this.tableName = extendedTableHandle.getSchemaTableName().getTableName();
+            this.schemaName = extendedTableHandle.getSchemaTableName().getSchemaName();
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
@@ -87,6 +90,7 @@ public class HBasePageSink implements ConnectorPageSink {
                 for (int channel = 0; channel < page.getChannelCount(); channel++) {
                     // The value of rowKey has been planted in object Put already,
                     // so we don't need to append it here.
+                    // if (this.tableMetaInfo.getColumns().get(channel).isIsRowKey()) {
                     if (channel == rowKeyColumnChannel) {
                         continue;
                     }
