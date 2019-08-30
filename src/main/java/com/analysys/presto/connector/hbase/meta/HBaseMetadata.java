@@ -20,6 +20,7 @@ import com.analysys.presto.connector.hbase.utils.Utils;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
+import com.facebook.presto.spi.statistics.ComputedStatistics;
 import com.facebook.presto.spi.type.Type;
 import com.facebook.presto.spi.type.VarcharType;
 import com.google.common.collect.ImmutableList;
@@ -271,12 +272,13 @@ public class HBaseMetadata implements ConnectorMetadata {
         return -1;
     }
 
-    /*@Override
+    @Override
     public Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session,
                                                           ConnectorInsertTableHandle insertHandle,
-                                                          Collection<Slice> fragments) {
+                                                          Collection<Slice> fragments,
+                                                          Collection<ComputedStatistics> computedStatistics) {
         return Optional.empty();
-    }*/
+    }
 
     private HBaseTableHandle fromConnectorTableHandle(ConnectorTableHandle tableHandle) {
         return checkType(tableHandle, HBaseTableHandle.class, "tableHandle");

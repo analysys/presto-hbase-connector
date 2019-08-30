@@ -9,6 +9,7 @@
         <artifactId>presto-root</artifactId>
         <version>0.220</version>
     </parent>
+    <packaging>presto-plugin</packaging>
      -->
 
     <!-- for presto cluster/single -->
@@ -17,7 +18,6 @@
 
     <artifactId>prestodb-hbase-0.220-ops</artifactId>
     <description>PrestoDb - HBase Connector</description>
-    <packaging>presto-plugin</packaging>
 
     <properties>
         <air.check.skip-license>true</air.check.skip-license>
