@@ -14,7 +14,7 @@
 
     <!-- for deploy -->
     <groupId>com.analysys.presto</groupId>
-    <version>meta-0.1.4</version>
+    <version>meta-0.1.5</version>
 
 
     <artifactId>prestosql-hbase-315-ops</artifactId>
