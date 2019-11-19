@@ -40,6 +40,15 @@ public class TableMetaInfo {
     private List<ColumnMetaInfo> columns = null;
     private String rowKeySeparator = null;
 
+    /**
+     * the range of the rowKey prefix, only support number, charactors with lower and upper case
+     * param value like:
+     * 0~9,a~f,A~F
+     * 0~9,A~F
+     * A~F
+     */
+    private String rowKeyPrefixRange;
+
     public String getTableName() {
         return tableName;
     }
@@ -119,6 +128,14 @@ public class TableMetaInfo {
 
     public void setRowKeySeparator(String rowKeySeparator) {
         this.rowKeySeparator = rowKeySeparator;
+    }
+
+    public String getRowKeyPrefixRange() {
+        return rowKeyPrefixRange;
+    }
+
+    public void setRowKeyPrefixRange(String rowKeyPrefixRange) {
+        this.rowKeyPrefixRange = rowKeyPrefixRange;
     }
 
     @Override

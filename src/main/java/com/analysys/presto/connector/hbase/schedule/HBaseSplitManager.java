@@ -20,6 +20,7 @@ import com.analysys.presto.connector.hbase.utils.Constant;
 import com.analysys.presto.connector.hbase.utils.TimeTicker;
 import com.analysys.presto.connector.hbase.utils.Utils;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import io.prestosql.spi.HostAddress;
@@ -27,6 +28,7 @@ import io.prestosql.spi.connector.*;
 import io.prestosql.spi.predicate.Domain;
 import io.prestosql.spi.predicate.Range;
 import io.prestosql.spi.predicate.TupleDomain;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.client.Admin;
 
@@ -132,10 +134,8 @@ public class HBaseSplitManager implements ConnectorSplitManager {
             // create splits
             for (HRegionInfo regionInfo : regions) {
                 // Client side region scanner using no startKey and endKey.
-                splits.add(new HBaseSplit(this.connectorId, schemaName, tableName,
-                        rowKeyName, getHostAddresses(hostIndex), null, null, conditions,
-                        config.isRandomScheduleRedundantSplit(),
-                        hostIndex, regionInfo, snapshotName));
+                splits.add(createHBaseSplit(schemaName, tableName, rowKeyName, hostIndex, null, null,
+                        conditions, hostIndex, regionInfo, snapshotName));
                 hostIndex++;
             }
         } catch (Exception e) {
@@ -243,19 +243,103 @@ public class HBaseSplitManager implements ConnectorSplitManager {
             String endKey;
             for (String saltyStartKey : startKeyList) {
                 endKey = saltyStartKey + ROWKEY_TAIL;
-                splits.add(new HBaseSplit(this.connectorId, schemaName, tableName,
-                        tableMetaInfo.getRowKeyColName(), getHostAddresses(hostIndex),
-                        saltyStartKey, endKey, conditions, config.isRandomScheduleRedundantSplit(), null, null, null));
+                splits.add(createHBaseSplit(schemaName, tableName, tableMetaInfo.getRowKeyColName(),
+                        hostIndex, saltyStartKey, endKey, conditions,
+                        -1, null, null));
                 hostIndex += 1;
             }
-        }
-        // single split
-        else {
-            splits.add(new HBaseSplit(this.connectorId, schemaName, tableName,
-                    tableMetaInfo.getRowKeyColName(), getHostAddresses(hostIndex),
-                    null, null, conditions, config.isRandomScheduleRedundantSplit(), null, null, null));
+        } else {
+            // have no constraints to create the StartKey, and RowKey has no salt part on the prefix like '01-xxxxx',
+            // have to scan full table using 1 split,
+            // check if the prefix of rowKey are random code so we still can create some splits
+            if (StringUtils.isNotEmpty(tableMetaInfo.getRowKeyPrefixRange())) {
+                List<StartAndEnd> startAndEndRowKeys = getStartEndKeysWhenRowKeyHaveSaltyPrefix(tableMetaInfo.getRowKeyPrefixRange());
+                for (StartAndEnd range : startAndEndRowKeys) {
+                    splits.add(createHBaseSplit(schemaName, tableName,
+                            tableMetaInfo.getRowKeyColName(), hostIndex,
+                            range.start + "", range.end + ROWKEY_TAIL, conditions,
+                            -1, null, null));
+                }
+            }
+            // single split
+            else {
+                splits.add(createHBaseSplit(schemaName, tableName,
+                        tableMetaInfo.getRowKeyColName(), hostIndex,
+                        null, null, conditions, -1, null, null));
+            }
         }
         return splits;
+    }
+
+    /**
+     * If the first char of rowKey is hash-liked, using this to add salt to the splits.
+     * will create about (0.5 ~ 1.5) * n HBase splits adjusted by constant ROWKEY_PREFIX_SPLIT_COUNT.
+     *
+     * @param rowKeyPrefixRange range of the rowKey, value is like 0~9,A~F,a~f or a~f,0~9 ..
+     * @return start and end rowKeys
+     */
+    List<StartAndEnd> getStartEndKeysWhenRowKeyHaveSaltyPrefix(String rowKeyPrefixRange) {
+        List<StartAndEnd> prefixRanges = Arrays.stream(rowKeyPrefixRange.split(COMMA))
+                .map(StartAndEnd::new).collect(Collectors.toList());
+        int rangeSpace = 0;
+        for (StartAndEnd range : prefixRanges) {
+            rangeSpace += (Math.abs(range.end - range.start) + 1);
+        }
+
+        ImmutableList.Builder<StartAndEnd> startAndEndKeys = ImmutableList.builder();
+        // rounding step value
+        int step = (int) Math.rint((rangeSpace + 0.0) / ROWKEY_PREFIX_SPLIT_COUNT);
+        // generate salty start and end keys
+        for (StartAndEnd range : prefixRanges) {
+            startAndEndKeys.addAll(generateSaltyStartEndKey(range, step));
+        }
+
+        return startAndEndKeys.build();
+    }
+
+    class StartAndEnd {
+        final char start;
+        final char end;
+
+        StartAndEnd(char start, char end) {
+            this.start = start;
+            this.end = end;
+        }
+
+        StartAndEnd(String startAndEnd) {
+            String[] se = startAndEnd.split(SWUNG_DASH);
+            this.start = se[0].charAt(0);
+            this.end = se[1].charAt(0);
+        }
+
+        @Override
+        public String toString() {
+            return "StartAndEnd{" +
+                    "start=" + start +
+                    ", end=" + end +
+                    '}';
+        }
+    }
+
+    /**
+     * generate salty start and end keys
+     *
+     * @param prefixRange single prefix range
+     * @param step        step
+     * @return startAndEndKeys generated by one single range
+     */
+    private List<StartAndEnd> generateSaltyStartEndKey(StartAndEnd prefixRange, int step) {
+        ImmutableList.Builder<StartAndEnd> startAndEndKeys = ImmutableList.builder();
+        int realStep = step == 0 ? 1 : step;
+        // System.out.println("step=" + step + ", realStep=" + realStep);
+        for (char index = prefixRange.start; index <= prefixRange.end; index += realStep) {
+            char end = (char) (index + realStep - 1);
+            if (index + realStep > prefixRange.end) {
+                end = prefixRange.end;
+            }
+            startAndEndKeys.add(new StartAndEnd(index, end));
+        }
+        return startAndEndKeys.build();
     }
 
     private List<HBaseSplit> getSplitsForBatchGet(List<ConditionInfo> conditions,
@@ -283,19 +367,18 @@ public class HBaseSplitManager implements ConnectorSplitManager {
             // Rather than creating another split, spread the extra records into each split
             if (splitConditions.size() >=
                     maxSplitSize + (splits.size() < rowKeys.size() % BATCHGET_SPLIT_RECORD_COUNT ? 1 : 0)) {
-                splits.add(new HBaseSplit(this.connectorId, tableHandle.getSchemaTableName().getSchemaName(),
+                splits.add(createHBaseSplit(tableHandle.getSchemaTableName().getSchemaName(),
                         tableHandle.getSchemaTableName().getTableName(), tableMetaInfo.getRowKeyColName(),
-                        getHostAddresses(hostIndex), null, null, splitConditions,
-                        config.isRandomScheduleRedundantSplit(), null, null, null));
+                        hostIndex, null, null, splitConditions,
+                        -1, null, null));
                 hostIndex++;
                 splitConditions = new ArrayList<>();
             } // end of if
         } // end of for
         if (splitConditions.size() > 0) {
-            splits.add(new HBaseSplit(this.connectorId, tableHandle.getSchemaTableName().getSchemaName(),
+            splits.add(createHBaseSplit(tableHandle.getSchemaTableName().getSchemaName(),
                     tableHandle.getSchemaTableName().getTableName(), tableMetaInfo.getRowKeyColName(),
-                    getHostAddresses(hostIndex), null, null, splitConditions,
-                    config.isRandomScheduleRedundantSplit(), null, null, null));
+                    hostIndex, null, null, splitConditions, -1, null, null));
         }
         log.info("Batch get by RowKey. Split count: "
                 + splits.size() + ", table=" + tableHandle.getSchemaTableName().toString());
@@ -305,7 +388,38 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         return splits;
     }
 
+    /**
+     * create HBaseSplit for shot
+     *
+     * @param schemaName    schema name
+     * @param tableName     table name
+     * @param rowKeyColName rowkey column name
+     * @param hostIndex     host index
+     * @param startKey      startKey
+     * @param endKey        endKey
+     * @param conditions    conditions from constraint
+     * @param regionIndex   region index
+     * @param regionInfo    region info
+     * @param snapshotName  snapshot name
+     * @return HBaseSplit
+     */
+    private HBaseSplit createHBaseSplit(String schemaName, String tableName, String rowKeyColName, int hostIndex,
+                                        String startKey, String endKey, List<ConditionInfo> conditions,
+                                        int regionIndex, HRegionInfo regionInfo, String snapshotName) {
+        return new HBaseSplit(this.connectorId, schemaName,
+                tableName, rowKeyColName, getHostAddresses(hostIndex), startKey, endKey, conditions,
+                config.isRandomScheduleRedundantSplit(), regionIndex, regionInfo, snapshotName);
+    }
 
+    /**
+     * add salt to startKeys we generated from constraints
+     *
+     * @param startKeys      startKeys
+     * @param saltLower      saltLower
+     * @param saltUpper      saltUpper
+     * @param rowKeySplitter rowKey splitter
+     * @return salty startKeys
+     */
     private List<String> addSalt2StartKeys(List<String> startKeys,
                                            int saltLower, int saltUpper, String rowKeySplitter) {
         List<String> saltyStartKeys = new ArrayList<>();

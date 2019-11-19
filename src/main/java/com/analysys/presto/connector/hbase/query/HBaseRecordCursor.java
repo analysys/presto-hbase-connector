@@ -29,7 +29,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,10 +116,14 @@ public class HBaseRecordCursor implements RecordCursor {
     }
 
     private Object getFieldValue(int field) {
-        Preconditions.checkState(ordinalPositionAndFieldsIndexMap.containsKey(columnHandles.get(field).getOrdinalPosition()),
+        /*Preconditions.checkState(ordinalPositionAndFieldsIndexMap.containsKey(columnHandles.get(field).getOrdinalPosition()),
                 String.format("Cannot find the value of field index %d, field array is %s, split=%s",
-                        field, Arrays.toString(fields), split.toString()));
-        return fields[ordinalPositionAndFieldsIndexMap.get(columnHandles.get(field).getOrdinalPosition())];
+                        field, Arrays.toString(fields), split.toString()));*/
+        if (ordinalPositionAndFieldsIndexMap.containsKey(columnHandles.get(field).getOrdinalPosition())) {
+            return fields[ordinalPositionAndFieldsIndexMap.get(columnHandles.get(field).getOrdinalPosition())];
+        } else {
+            return null;
+        }
     }
 
     /**

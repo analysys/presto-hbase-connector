@@ -40,4 +40,35 @@ public class UtilsTest {
     Assert.assertTrue(Utils.isBatchGet(conditions, "fooBar"));
   }
 
+  /*@PrepareForTest({FileUtils.class, Utils.class})
+  @Test
+  public void testGetColumnMetaFromJson() throws Exception {
+    PowerMockito.mockStatic(FileUtils.class);
+
+    PowerMockito.when(FileUtils.readFileToString(Mockito.any(), Mockito.anyString())).thenReturn("{" +
+            "\"columns\":[ " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"fooBar\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"string\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"int\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"bigint\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"double\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"boolean\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"array<string>\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"timestamp\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"datetime\"}, " +
+            "{\"family\": foo, \"columnName\": Bar, \"type\": \"number\"}" +
+            "] }");
+
+    Assert.assertArrayEquals(new Object[]{new HBaseColumnMetadata("foo", "Bar", VarcharType.VARCHAR, true),
+            new HBaseColumnMetadata("foo", "Bar", VarcharType.VARCHAR, false),
+            new HBaseColumnMetadata("foo", "Bar", IntegerType.INTEGER, false),
+            new HBaseColumnMetadata("foo", "Bar", BigintType.BIGINT, false),
+            new HBaseColumnMetadata("foo", "Bar", DoubleType.DOUBLE, false),
+            new HBaseColumnMetadata("foo", "Bar", BooleanType.BOOLEAN, false),
+            new HBaseColumnMetadata("foo", "Bar", new ArrayType(VarcharType.VARCHAR), false),
+            new HBaseColumnMetadata("foo", "Bar", TimestampType.TIMESTAMP, false),
+            new HBaseColumnMetadata("foo", "Bar", TimestampType.TIMESTAMP, false),
+            new HBaseColumnMetadata("foo", "Bar", DecimalType.createDecimalType(DECIMAL_DEFAULT_PRECISION, DECIMAL_DEFAULT_SCALE), false)
+    }, Utils.getColumnMetaFromJson("a","b","c").toArray());
+  }*/
 }
