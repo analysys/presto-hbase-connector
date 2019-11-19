@@ -20,12 +20,6 @@ public class TimeTicker {
         return System.currentTimeMillis() - time;
     }
 
-    public static void main(String[] args) {
-        System.out.println('9' - '0');
-        System.out.println('F' - 'A');
-        System.out.println('f' - 'a');
-    }
-
     public String checkUpdateAndPrint() {
         long t = checkDurationAndUpdateTime();
         return t + " mill seconds";

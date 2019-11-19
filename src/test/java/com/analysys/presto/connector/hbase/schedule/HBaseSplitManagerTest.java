@@ -9,6 +9,9 @@ public class HBaseSplitManagerTest {
 
     @Test
     public void testGetStartEndKeysWhenRowKeyHaveSaltyPrefix() {
+        System.out.println('9' - '0');
+        System.out.println('F' - 'A');
+        System.out.println('f' - 'a');
         /*List<HBaseSplitManager.StartAndEnd> startAndEnds = new HBaseSplitManager(new HBaseConnectorId("hbase"),
                 null, null)
                 .getStartEndKeysWhenRowKeyHaveSaltyPrefix("0~9,A~Z,a~z");
