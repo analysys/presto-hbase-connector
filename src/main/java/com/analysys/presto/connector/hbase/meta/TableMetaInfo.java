@@ -41,13 +41,13 @@ public class TableMetaInfo {
     private String rowKeySeparator = null;
 
     /**
-     * the range of the rowKey prefix, only support number, charactors with lower and upper case
-     * param value like:
+     * the range of the first char of rowKey, only support number and char with lower and upper case
+     * param format like:
      * 0~9,a~f,A~F
      * 0~9,A~F
      * A~F
      */
-    private String rowKeyPrefixRange;
+    private String rowKeyFirstCharRange;
 
     public String getTableName() {
         return tableName;
@@ -130,12 +130,12 @@ public class TableMetaInfo {
         this.rowKeySeparator = rowKeySeparator;
     }
 
-    public String getRowKeyPrefixRange() {
-        return rowKeyPrefixRange;
+    public String getRowKeyFirstCharRange() {
+        return rowKeyFirstCharRange;
     }
 
-    public void setRowKeyPrefixRange(String rowKeyPrefixRange) {
-        this.rowKeyPrefixRange = rowKeyPrefixRange;
+    public void setRowKeyFirstCharRange(String rowKeyFirstCharRange) {
+        this.rowKeyFirstCharRange = rowKeyFirstCharRange;
     }
 
     @Override
