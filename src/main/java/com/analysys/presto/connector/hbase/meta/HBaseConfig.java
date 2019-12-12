@@ -71,6 +71,13 @@ public class HBaseConfig {
      */
     private int createSnapshotRetryTimes = 15;
 
+    /**
+     * is rowkey has a seperate salt part
+     * salt part can only have one char
+     * can be anyone of a~z,A~Z,0~9
+     */
+    private boolean seperateSaltPart = false;
+
     @NotNull
     public String getMetaDir() {
         return metaDir;
@@ -212,6 +219,15 @@ public class HBaseConfig {
     @Config("clientside-createsnapshot-retrytimes")
     public void setCreateSnapshotRetryTimes(int createSnapshotRetryTimes) {
         this.createSnapshotRetryTimes = createSnapshotRetryTimes;
+    }
+
+    public boolean isSeperateSaltPart() {
+        return seperateSaltPart;
+    }
+
+    @Config("has-seperate-salt-part")
+    public void setSeperateSaltPart(boolean seperateSaltPart) {
+        this.seperateSaltPart = seperateSaltPart;
     }
 
     @Override
