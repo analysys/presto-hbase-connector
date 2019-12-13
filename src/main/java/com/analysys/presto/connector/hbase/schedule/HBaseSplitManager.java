@@ -243,7 +243,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 // otherwise, duplicate data will appear in scan operation
                 // therefore, the number of splits should be controlled within 100 to avoid too much performance degradation
                 // so saltCount has to be Integer.MAX_VALUE
-                saltyPartStartKeyList = getStartEndKeysWhenRowKeyHasSaltyFirstChar(tableMetaInfo.getRowKeyFirstCharRange(), Integer.MAX_VALUE);
+                saltyPartStartKeyList = getSaltyPartWhenRowKeyHasSaltyFirstChar(tableMetaInfo.getRowKeyFirstCharRange(), Integer.MAX_VALUE);
                 if (saltyPartStartKeyList.size() * notSaltyPartStartKeyList.size() <= MAX_SPLIT_COUNT) {
                     for (String notSaltyPartStartKey : notSaltyPartStartKeyList) {
                         for (StartAndEnd saltyPartStartKey : saltyPartStartKeyList) {
@@ -301,7 +301,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
                 + ", the range of first char is : " + rowKeyFirstCharRange);
         int hostIndex = 0;
         List<StartAndEnd> startAndEndRowKeys =
-                getStartEndKeysWhenRowKeyHasSaltyFirstChar(rowKeyFirstCharRange, ROWKEY_PREFIX_SPLIT_COUNT);
+                getSaltyPartWhenRowKeyHasSaltyFirstChar(rowKeyFirstCharRange, ROWKEY_PREFIX_SPLIT_COUNT);
         for (StartAndEnd range : startAndEndRowKeys) {
             splits.add(createHBaseSplit(schemaName, tableName,
                     rowKeyColName, hostIndex,
@@ -318,7 +318,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
      * @param rowKeyFirstCharRange range of the rowKey, value is like 0~9,A~F,a~f or a~f,0~9 ..
      * @return start and end rowKeys
      */
-    private List<StartAndEnd> getStartEndKeysWhenRowKeyHasSaltyFirstChar(String rowKeyFirstCharRange, int saltCount) {
+    private List<StartAndEnd> getSaltyPartWhenRowKeyHasSaltyFirstChar(String rowKeyFirstCharRange, int saltCount) {
         List<StartAndEnd> prefixRanges = Arrays.stream(rowKeyFirstCharRange.split(COMMA))
                 .map(StartAndEnd::new).collect(Collectors.toList());
         int rangeSpace = 0;
