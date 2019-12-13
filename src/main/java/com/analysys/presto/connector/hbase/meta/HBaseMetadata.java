@@ -80,24 +80,6 @@ public class HBaseMetadata implements ConnectorMetadata {
         return connectorTableHandle;
     }
 
-    /*@Override
-    public List<ConnectorTableLayoutResult> getTableLayouts(ConnectorSession connectorSession,
-                                                            ConnectorTableHandle connectorTableHandle,
-                                                            Constraint constraint,
-                                                            Optional<Set<ColumnHandle>> desiredColumns) {
-        HBaseTableHandle tableHandle = checkType(connectorTableHandle, HBaseTableHandle.class, "tableHandle");
-        ConnectorTableLayout layout = new ConnectorTableLayout(
-                new HBaseTableLayoutHandle(tableHandle, constraint.getSummary()));
-        return ImmutableList.of(new ConnectorTableLayoutResult(layout, constraint.getSummary()));
-    }
-
-    @Override
-    public ConnectorTableLayout getTableLayout(ConnectorSession connectorSession,
-                                               ConnectorTableLayoutHandle connectorTableLayoutHandle) {
-        HBaseTableLayoutHandle layout = checkType(connectorTableLayoutHandle, HBaseTableLayoutHandle.class, "layout");
-        return new ConnectorTableLayout(layout);
-    }*/
-
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession connectorSession,
                                                    ConnectorTableHandle connectorTableHandle) {
@@ -304,7 +286,7 @@ public class HBaseMetadata implements ConnectorMetadata {
         ColumnMetaInfo rowKeyInfo = rowKeyOpt.get();
         // HBaseColumnHandle's attributes cannot be all the same with the REAL rowKey column,
         // Or there will be a java.lang.IllegalArgumentException: Multiple entries with same value Exception.
-        return new HBaseColumnHandle(CONNECTOR_NAME, /*rowKeyInfo.getFamily(),*/ "",
+        return new HBaseColumnHandle(CONNECTOR_NAME, "",
                 rowKeyInfo.getColumnName(), VarcharType.VARCHAR,
                 tableMetaInfo.getColumns().indexOf(rowKeyOpt.get()),
                 rowKeyInfo.isRowKey());
@@ -324,7 +306,6 @@ public class HBaseMetadata implements ConnectorMetadata {
         return false;
     }
     // --------------- support delete function end ---------------
-
 
     @Override
     public ConnectorTableProperties getTableProperties(ConnectorSession session, ConnectorTableHandle table) {
