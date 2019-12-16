@@ -108,11 +108,11 @@ meta-dir=/etc/presto/chbase
 * enable-clientSide-scan
 
          是否启用HBase的ClientSide查询模式。默认为不启用，false。
-         
+     
 * clientside-querymode-tablenames
 
          使用ClientSide模式进行查询的表名，多表用英文逗号间隔。
- 
+
 ##### 2.配置namespace
 
 完成hbase.properties的配置之后，需要在{meta-dir}目录创建HBase的namespace目录结构
@@ -144,15 +144,16 @@ namespace目录创建完成之后，我们需要配置表结构json文件，下�
 
 表json：
 
-| 属性名                  | 描述                                                         |
-| ----------------------- | ------------------------------------------------------------ |
-| tableName               | 表名                                                         |
-| schemaName              | Namespace                                                    |
-| rowKeyFormat            | RowKey是由哪些字段组成，用英文逗号分隔。字段组成有序。       |
-| rowKeySeparator         | RowKey字段之间的分隔符，默认是\001                           |
-| rowKeySaltUpperAndLower | RowKey的盐值范围。上界和下界不能小于0，值之间用英文逗号分隔。例如：0,29 |
-| describe                | 表格描述                                                     |
-| columns                 | 字段列表                                                     |
+| 属性名               | 描述                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| tableName            | 表名                                                         |
+| schemaName           | Namespace                                                    |
+| rowKeyFormat         | RowKey是由哪些字段组成，用英文逗号分隔。字段组成有序。       |
+| rowKeySeparator      | 组成RowKey的字段之间的分隔符，默认是\001                     |
+| seperateSaltPart     | RowKey是否由单独的盐值作为前缀。如果RowKey以单独的盐值部分加上{rowKeySeparator}开头，则配置为true。从0.1.5版本开始盐值只能由一位取值范围在a\~z,A\~Z,0\~9的字符组成。 |
+| rowKeyFirstCharRange | 如果RowKey是散列的，可以指定RowKey首字母的取值范围，这样可以以多个split并发的方式大幅提升性能。首字母的取值范围可以是a\~z,A\~Z,0\~9，相互之间用英文逗号间隔，例如：a\~b,D\~K,3\~5，或者3\~5,c\~f等等 |
+| describe             | 表格描述                                                     |
+| columns              | 字段列表                                                     |
 
 columns json：
 
@@ -175,8 +176,10 @@ RowKey字段的类型必须为varchar。
   "tableName": "t_event_test",
   "schemaName": "db_test",
   "rowKeyFormat": "xwhat,xwho",
-  "rowKeySaltUpperAndLower": "0,29",
   "describe": "Table for test!",
+  "rowKeySeparator": "-",
+  "rowKeyFirstCharRange": "a~z,0~9",
+  "seperateSaltPart": false
   "columns": [{
     "family": "",
     "columnName": "rowkey",
@@ -195,8 +198,7 @@ RowKey字段的类型必须为varchar。
     "comment": "Column for test!",
     "type": "varchar",
     "isRowKey": false
-  }],
-  "rowKeySeparator": "-"
+  }]
 }
 
 ```
@@ -250,23 +252,37 @@ delete from hbase.db_test.test_event where xwhen >= 1562139516028;
 盐值就是指给每个RowKey增加一组可逆向还原的随机数字作为前缀。这样可以将数据分散到多个region存储，查询时也可以通过多线程并发查找。在presto中就可以利用这个机制将数据切分成多个split并发查找。经过验证，使用盐值可以使性能提升几十倍以上。
 
 在组件中使用盐值需要在json文件中设置以下两个属性：
-* rowKeySaltUpperAndLower
 
-      该属性用来定义盐值的数值范围，如果设置为"0,29"，则会从00到29依次生成30对startKey和endKey，每一对startKey和endKey会交给一个split去做数据扫描。如下：
+- seperateSaltPart
 
   ```
-  (00, 00|)
-  (01, 01|)
-  (02, 02|)
-  ......
-  (29, 29|)
+  RowKey是否使用了单独的盐值作为前缀。如果RowKey以单独的盐值部分加上{rowKeySeparator}开头，则配置为true。从0.1.5版本开始盐值只能由一位取值范围在a~z,A~Z,0~9的字符组成。
   ```
 
-  
+* rowKeyFirstCharRange
+
+      当RowKey的首个字符是按照MD5或者其他算法散列时，可以通过这个属性说明首个字符的取值范围。connector会根据他的取值范围生成多个split并发执行。首字母的取值范围暂时只支持a~z,A~Z,0~9，相互之间用英文逗号间隔，例如：
+      a~b,D~K,3~5
+      3~5,c~f
+      A~Z,p~u
+      当该属性配置为a~b,D~F,6~8时，会依次生成8对startKey和endKey。
+      每一对startKey和endKey会交给一个split去做数据扫描。如下：
+      (a,a|)
+      (b,b|)
+      (D,D|)
+      (E,E|)
+      (F,F|)
+      (6,6|)
+      (7,7|)
+      (8,8|)
+      有时如果拆出的split过多，会自动进行范围的合并，以避免split过多性能反而下降，例如：
+      (a,b|)
+      (D,F|)
+      (6,8|)
 
 * rowKeySeparator
 
-      RowKey的不同组成部分之间的分隔符，默认是\001
+      组成RowKey的字段之间的分隔符，默认是\001
 
 ##### 2.根据RowKey的组成拼接StartKey和EndKey
 
@@ -469,3 +485,11 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 - 将connector迁移到PrestoSql-315版本。
 - 提供一个基于PrestoDb-0.221实现的可用版本，分支名为dev_prestodb-0.221_0.1.2。
 - 修改doc文档。
+
+##### 4. meta-0.1.4
+
+- 迁移connector api到non-legacy的新版本
+
+##### 5. meta-0.1.5
+
+- 重新调整切分split的逻辑，去掉参数rowKeySaltUpperAndLower，改为rowKeyFirstCharRange和seperateSaltPart。使得即使RowKey没有盐值部分，且没有可用来拼接StartKey的谓词时，只要RowKey首字符是散列的，仍然可以切分出多个split以增加查询并行度。
