@@ -77,6 +77,10 @@ public interface Constant {
 
     static final String ROWKEY_TAIL = "|";
 
+    static final String SWUNG_DASH = "~";
+    static final int ROWKEY_PREFIX_SPLIT_COUNT = 20;
+    static final int MAX_SPLIT_COUNT = 100;
+
     public static final String HBASE_NAMESPACE_DEFAULT = "default";
 
 }

@@ -40,6 +40,15 @@ public class TableMetaInfo {
     private List<ColumnMetaInfo> columns = null;
     private String rowKeySeparator = null;
 
+    /**
+     * the range of the first char of rowKey, only support number and char with lower and upper case
+     * param format like:
+     * 0~9,a~f,A~F
+     * 0~9,A~F
+     * A~F
+     */
+    private String rowKeyFirstCharRange;
+
     public String getTableName() {
         return tableName;
     }
@@ -119,6 +128,14 @@ public class TableMetaInfo {
 
     public void setRowKeySeparator(String rowKeySeparator) {
         this.rowKeySeparator = rowKeySeparator;
+    }
+
+    public String getRowKeyFirstCharRange() {
+        return rowKeyFirstCharRange;
+    }
+
+    public void setRowKeyFirstCharRange(String rowKeyFirstCharRange) {
+        this.rowKeyFirstCharRange = rowKeyFirstCharRange;
     }
 
     @Override
