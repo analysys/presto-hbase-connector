@@ -451,6 +451,43 @@ public class HBaseSplitManager implements ConnectorSplitManager {
     }
 
     /**
+     * add salt to startKeys we generated from constraints
+     *
+     * @param startKeys      startKeys
+     * @param saltLower      saltLower
+     * @param saltUpper      saltUpper
+     * @param rowKeySplitter rowKey splitter
+     * @return salty startKeys
+     */
+    private List<String> addSalt2StartKeys(List<String> startKeys,
+                                           int saltLower, int saltUpper, String rowKeySplitter) {
+        List<String> saltyStartKeys = new ArrayList<>();
+        Iterator<String> skIt = startKeys.iterator();
+        String startKey;
+        String salt;
+        do {
+            if (!startKeys.isEmpty()) {
+                startKey = skIt.next();
+            } else {
+                startKey = "";
+            }
+            for (int i = saltLower; i <= saltUpper; i++) {
+                salt = Utils.addZeroPrefix(String.valueOf(i),
+                        String.valueOf(saltUpper).length() - String.valueOf(i).length());
+                String saltyStartKey;
+                if (isEmpty(startKey)) {
+                    saltyStartKey = salt;
+                } else {
+                    saltyStartKey = salt + rowKeySplitter + startKey;
+                }
+
+                saltyStartKeys.add(saltyStartKey);
+            }
+        } while (skIt.hasNext());
+        return saltyStartKeys;
+    }
+
+    /**
      * get scan startKey
      *
      * @param conditions   all query conditions
