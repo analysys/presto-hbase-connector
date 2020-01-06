@@ -87,8 +87,6 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         // batch get
         if (Utils.isBatchGet(conditions, tableMetaInfo.getRowKeyColName())) {
             splits = getSplitsForBatchGet(conditions, tableMetaInfo, tableHandle);
-            Collections.shuffle(splits);
-            return new FixedSplitSource(splits);
         }
         // client side scan
         else if (isClientSideRegionScanTable(schemaName, tableName, config.getClientSideQueryModeTableNames())) {
