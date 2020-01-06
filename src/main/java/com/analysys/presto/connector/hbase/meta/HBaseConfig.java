@@ -72,7 +72,7 @@ public class HBaseConfig {
     private int createSnapshotRetryTimes = 15;
 
     /**
-     * is rowkey has a seperate salt part
+     * Does rowkey has a seperate salt part
      * salt part can only have one char
      * can be anyone of a~z,A~Z,0~9
      */

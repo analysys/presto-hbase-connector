@@ -98,7 +98,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
         }
 
         log.info("The final split count is " + splits.size() + ".");
-        splits.forEach(split -> log.info("print split info：" + split.toString()));
+        splits.forEach(split -> log.info("Print split info：" + split.toString()));
 
         Collections.shuffle(splits);
         return new FixedSplitSource(splits);
@@ -209,7 +209,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
     }
 
     /**
-     * get splits for scan query mode
+     * Get splits for scan query mode
      *
      * @param conditions    conditions
      * @param tableMetaInfo tableMetaInfo
