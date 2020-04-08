@@ -107,8 +107,8 @@ public class HBaseConfig {
     }
 
     public void init() {
-        // If we don't support to schedule a split to a specify worker,
-        // then prestoWorkersName and prestoWorkersIp can be null
+        // If we don't support scheduling a split to a specify worker,
+        // prestoWorkersName and prestoWorkersIp can be null
         if (this.randomScheduleRedundantSplit) {
             String[] workersIp = Arrays.stream(this.prestoWorkersName.split(",")).map(hostname -> {
                 InetAddress address;

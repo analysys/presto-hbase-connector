@@ -234,7 +234,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
 
         // whether we can create startKeyList by constraint
         if (!notSaltyPartStartKeyList.isEmpty()) {
-            // whether this table has seperate salty part at the start of rowKey
+            // whether this table has separate salty part at the start of rowKey
             // after version dev_0.1.5 salt value part can only have one single character
             if (config.isSeperateSaltPart()) {
                 // each possible value within the range of salt value must form a finalStartKey separately with startKey

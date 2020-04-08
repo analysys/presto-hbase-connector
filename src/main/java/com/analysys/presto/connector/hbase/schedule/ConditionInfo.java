@@ -26,7 +26,7 @@ import java.math.BigDecimal;
 import static io.prestosql.spi.type.IntegerType.INTEGER;
 
 /**
- * Condition info
+ * Condition Info
  *
  * @author wupeng
  * @date 2019/01/29
