@@ -6,10 +6,10 @@
 
 ## 性能对比
 
-| 环境   | 明细                                                         |
-| ------ | ------------------------------------------------------------ |
-| 数据量 | 事件表500万条数据，90个字段                                  |
-| 节点数 | 3                                                            |
+| 环境   | 明细                                                      |
+| ------ | --------------------------------------------------------- |
+| 数据量 | 事件表500万条数据，90个字段                               |
+| 节点数 | 3                                                         |
 | 硬件   | 16逻辑核 64G内存（其中Presto和HBase各占16G内存） 4T*2硬盘 |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
@@ -150,7 +150,6 @@ namespace目录创建完成之后，我们需要配置表结构json文件，下�
 | schemaName           | Namespace                                                    |
 | rowKeyFormat         | RowKey是由哪些字段组成，用英文逗号分隔。字段组成有序。       |
 | rowKeySeparator      | 组成RowKey的字段之间的分隔符，默认是\001                     |
-| seperateSaltPart     | RowKey是否由单独的盐值作为前缀。如果RowKey以单独的盐值部分加上{rowKeySeparator}开头，则配置为true。从0.1.5版本开始盐值只能由一位取值范围在a\~z,A\~Z,0\~9的字符组成。 |
 | rowKeyFirstCharRange | 如果RowKey是散列的，可以指定RowKey首字母的取值范围，这样可以以多个split并发的方式大幅提升性能。首字母的取值范围可以是a\~z,A\~Z,0\~9，相互之间用英文逗号间隔，例如：a\~b,D\~K,3\~5，或者3\~5,c\~f等等 |
 | describe             | 表格描述                                                     |
 | columns              | 字段列表                                                     |
@@ -179,7 +178,6 @@ RowKey字段的类型必须为varchar。
   "describe": "Table for test!",
   "rowKeySeparator": "-",
   "rowKeyFirstCharRange": "a~z,0~9",
-  "seperateSaltPart": false
   "columns": [{
     "family": "",
     "columnName": "rowkey",
@@ -492,4 +490,4 @@ HBase最大可支持的Snapshot数为65536个，所以在使用ClientSideRegionS
 
 ##### 5. meta-0.1.5
 
-- 重新调整切分split的逻辑，去掉参数rowKeySaltUpperAndLower，改为rowKeyFirstCharRange和seperateSaltPart。使得即使RowKey没有盐值部分，且没有可用来拼接StartKey的谓词时，只要RowKey首字符是散列的，仍然可以切分出多个split以增加查询并行度。
+- 重新调整切分split的逻辑，去掉参数rowKeySaltUpperAndLower，改为rowKeyFirstCharRange。使得即使RowKey没有盐值部分，且没有可用来拼接StartKey的谓词时，只要RowKey首字符是散列的，仍然可以切分出多个split以增加查询并行度。
