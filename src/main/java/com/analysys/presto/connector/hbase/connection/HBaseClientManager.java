@@ -19,11 +19,11 @@ import javax.inject.Inject;
 import io.airlift.log.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.TableDescriptor;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -100,12 +100,12 @@ public class HBaseClientManager {
         Objects.requireNonNull(schema, "schema is null");
         Objects.requireNonNull(tableName, "tableName is null");
         TableName hTableName = TableName.valueOf(schema.getBytes(), tableName.getBytes());
-        HTableDescriptor hTableDescriptor = null;
+        TableDescriptor hTableDescriptor = null;
 
         Admin admin = null;
         try {
             admin = this.getAdmin();
-            hTableDescriptor = admin.getTableDescriptor(hTableName);
+            hTableDescriptor = admin.getDescriptor(hTableName);
         } catch (IOException ex) {
             log.error(ex, ex.getMessage());
         } finally {
