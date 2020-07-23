@@ -27,12 +27,10 @@ import io.prestosql.spi.type.Type;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HRegionInfo;
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
-import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos;
 import org.apache.hadoop.hbase.snapshot.SnapshotDescriptionUtils;
 import org.apache.hadoop.hbase.snapshot.SnapshotManifest;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -100,10 +98,10 @@ public class HBaseRecordSet implements RecordSet {
                 Path root = new Path(config.getHbaseRootDir());
                 FileSystem fs = FileSystem.get(conf);
                 Path snapshotDir = SnapshotDescriptionUtils.getCompletedSnapshotDir(hBaseSplit.getSnapshotName(), root);
-                HBaseProtos.SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
+                SnapshotProtos.SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
                 SnapshotManifest manifest = SnapshotManifest.open(conf, fs, snapshotDir, snapshotDesc);
-                List<HRegionInfo> regionInfos = Utils.getRegionInfosFromManifest(manifest);
-                HTableDescriptor htd = manifest.getTableDescriptor();
+                List<RegionInfo> regionInfos = Utils.getRegionInfosFromManifest(manifest);
+                TableDescriptor htd = manifest.getTableDescriptor();
                 ClientSideRegionScanner scanner;
                 try {
                     scanner = new ClientSideRegionScanner(conf, fs, root, htd, regionInfos.get(hBaseSplit.getRegionIndex()), scan, null);
@@ -156,8 +154,8 @@ public class HBaseRecordSet implements RecordSet {
     }
 
     private ClientSideRegionScanner createClientSideRegionScannerWithExceptionHandle(
-            Configuration conf, FileSystem fs, Path root, HTableDescriptor htd,
-            HRegionInfo regionInfo, Scan scan) {
+            Configuration conf, FileSystem fs, Path root, TableDescriptor htd,
+            RegionInfo regionInfo, Scan scan) {
         try {
             return new ClientSideRegionScanner(conf, fs, root, htd, regionInfo, scan, null);
         } catch (Exception e) {
@@ -259,8 +257,8 @@ public class HBaseRecordSet implements RecordSet {
         // ---------- Constraint push down finished ----------
 
         if (hBaseSplit.getStartRow() != null && hBaseSplit.getEndRow() != null) {
-            scan.setStopRow(Bytes.toBytes(hBaseSplit.getEndRow()));
-            scan.setStartRow(Bytes.toBytes(hBaseSplit.getStartRow()));
+            scan.withStopRow(Bytes.toBytes(hBaseSplit.getEndRow()));
+            scan.withStartRow(Bytes.toBytes(hBaseSplit.getStartRow()));
         }
         return scan;
     }

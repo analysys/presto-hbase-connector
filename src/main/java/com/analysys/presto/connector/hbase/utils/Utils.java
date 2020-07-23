@@ -28,9 +28,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HRegionInfo;
-import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
-import org.apache.hadoop.hbase.protobuf.generated.SnapshotProtos;
+import org.apache.hadoop.hbase.client.RegionInfo;
+import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos;
 import org.apache.hadoop.hbase.snapshot.SnapshotDescriptionUtils;
 import org.apache.hadoop.hbase.snapshot.SnapshotManifest;
 import org.codehaus.jettison.json.JSONArray;
@@ -225,16 +225,16 @@ public class Utils {
         return conf;
     }
 
-    public static List<HRegionInfo> getRegionInfosFromManifest(SnapshotManifest manifest) {
+    public static List<RegionInfo> getRegionInfosFromManifest(SnapshotManifest manifest) {
         List<SnapshotProtos.SnapshotRegionManifest> regionManifests = manifest.getRegionManifests();
         if (regionManifests == null) {
             throw new IllegalArgumentException("Snapshot seems empty");
         }
 
-        List<HRegionInfo> regionInfos = Lists.newArrayListWithCapacity(regionManifests.size());
+        List<RegionInfo> regionInfos = Lists.newArrayListWithCapacity(regionManifests.size());
 
         for (SnapshotProtos.SnapshotRegionManifest regionManifest : regionManifests) {
-            HRegionInfo hri = HRegionInfo.convert(regionManifest.getRegionInfo());
+            RegionInfo hri = ProtobufUtil.toRegionInfo(regionManifest.getRegionInfo());
             if (hri.isOffline() && (hri.isSplit() || hri.isSplitParent())) {
                 continue;
             }
@@ -253,14 +253,14 @@ public class Utils {
      * @return region info list
      * @throws IOException IOException
      */
-    public static List<HRegionInfo> getRegionInfos(String zookeeperQuorum, String zookeeperClientPort,
+    public static List<RegionInfo> getRegionInfos(String zookeeperQuorum, String zookeeperClientPort,
                                                    String hBaseRootDir, String snapshotName) throws IOException {
         try {
             Configuration conf = Utils.getHadoopConf(zookeeperQuorum, zookeeperClientPort);
             Path root = new Path(hBaseRootDir);
             FileSystem fs = FileSystem.get(conf);
             Path snapshotDir = SnapshotDescriptionUtils.getCompletedSnapshotDir(snapshotName, root);
-            HBaseProtos.SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
+            SnapshotProtos.SnapshotDescription snapshotDesc = SnapshotDescriptionUtils.readSnapshotInfo(fs, snapshotDir);
             SnapshotManifest manifest = SnapshotManifest.open(conf, fs, snapshotDir, snapshotDesc);
             return Utils.getRegionInfosFromManifest(manifest);
         } catch (IOException ex) {

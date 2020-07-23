@@ -29,13 +29,12 @@ import io.prestosql.spi.predicate.Domain;
 import io.prestosql.spi.predicate.Range;
 import io.prestosql.spi.predicate.TupleDomain;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.RegionInfo;
 
 import javax.inject.Inject;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
 import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
 
@@ -129,10 +128,10 @@ public class HBaseSplitManager implements ConnectorSplitManager {
             createSnapshotTime = TimeTicker.calculateTimeTo(start);
 
             // get regions from snapshot
-            List<HRegionInfo> regions = Utils.getRegionInfos(config.getHbaseZookeeperQuorum(),
+            List<RegionInfo> regions = Utils.getRegionInfos(config.getHbaseZookeeperQuorum(),
                     config.getZookeeperClientPort(), config.getHbaseRootDir(), snapshotName);
             // create splits
-            for (HRegionInfo regionInfo : regions) {
+            for (RegionInfo regionInfo : regions) {
                 // Client side region scanner using no startKey and endKey.
                 splits.add(createHBaseSplit(schemaName, tableName, rowKeyName, hostIndex, null, null,
                         conditions, hostIndex, regionInfo, snapshotName));
@@ -444,7 +443,7 @@ public class HBaseSplitManager implements ConnectorSplitManager {
      */
     private HBaseSplit createHBaseSplit(String schemaName, String tableName, String rowKeyColName, int hostIndex,
                                         String startKey, String endKey, List<ConditionInfo> conditions,
-                                        int regionIndex, HRegionInfo regionInfo, String snapshotName) {
+                                        int regionIndex, RegionInfo regionInfo, String snapshotName) {
         return new HBaseSplit(this.connectorId, schemaName,
                 tableName, rowKeyColName, getHostAddresses(hostIndex), startKey, endKey, conditions,
                 config.isRandomScheduleRedundantSplit(), regionIndex, regionInfo, snapshotName);

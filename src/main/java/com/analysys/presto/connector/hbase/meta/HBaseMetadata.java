@@ -26,8 +26,11 @@ import io.prestosql.spi.predicate.TupleDomain;
 import io.prestosql.spi.statistics.ComputedStatistics;
 import io.prestosql.spi.type.Type;
 import io.prestosql.spi.type.VarcharType;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.SnapshotType;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
+import org.apache.hadoop.hbase.client.SnapshotDescription;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -196,12 +199,7 @@ public class HBaseMetadata implements ConnectorMetadata {
         } else {
             fullTableName = schemaName + ":" + tableName;
         }
-        HBaseProtos.SnapshotDescription snapshot = HBaseProtos.SnapshotDescription.newBuilder()
-                .setName(snapshotName)
-                .setTable(fullTableName)
-                .setType(HBaseProtos.SnapshotDescription.Type.FLUSH)
-                // .setType(HBaseProtos.SnapshotDescription.Type.DISABLED)
-                .build();
+        SnapshotDescription snapshot = new SnapshotDescription(snapshotName, TableName.valueOf(fullTableName), SnapshotType.FLUSH);
         admin.snapshot(snapshot);
         log.info("createSnapshot: create snapshot " + snapshotName
                 + " used " + (System.currentTimeMillis() - start) + " mill seconds.");

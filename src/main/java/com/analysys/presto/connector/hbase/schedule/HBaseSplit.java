@@ -17,8 +17,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.prestosql.spi.HostAddress;
 import io.prestosql.spi.connector.ConnectorSplit;
-import org.apache.hadoop.hbase.HRegionInfo;
-
+import org.apache.hadoop.hbase.client.RegionInfo;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.HBaseProtos;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,7 +40,7 @@ public class HBaseSplit implements ConnectorSplit {
     private final List<ConditionInfo> constraint;
     private final String rowKeyName;
     private final Integer regionIndex;
-    private final HRegionInfo regionInfo;
+    private final RegionInfo regionInfo;
     private final String snapshotName;
 
     @JsonCreator
@@ -54,7 +54,7 @@ public class HBaseSplit implements ConnectorSplit {
                       @JsonProperty("constraint") List<ConditionInfo> constraint,
                       @JsonProperty("randomScheduleRedundantSplit") boolean randomScheduleRedundantSplit,
                       @JsonProperty("regionIndex") Integer regionIndex,
-                      @JsonProperty("regionInfo") HRegionInfo regionInfo,
+                      @JsonProperty("regionInfo") RegionInfo regionInfo,
                       @JsonProperty("snapshotName") String snapshotName) {
         this.schemaName = Objects.requireNonNull(schemaName, "schema name is null");
         this.connectorId = Objects.requireNonNull(connectorId, "connector id is null");
@@ -128,7 +128,7 @@ public class HBaseSplit implements ConnectorSplit {
     }
 
     @JsonProperty
-    public HRegionInfo getRegionInfo() {
+    public RegionInfo getRegionInfo() {
         return regionInfo;
     }
 

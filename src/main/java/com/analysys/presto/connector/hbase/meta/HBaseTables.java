@@ -18,17 +18,14 @@ import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
 import io.prestosql.spi.connector.SchemaTableName;
 import io.prestosql.spi.predicate.TupleDomain;
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.TableDescriptor;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * HBase tables
@@ -51,15 +48,13 @@ public class HBaseTables {
         Map<SchemaTableName, HBaseTableHandle> tables;
         try {
             ImmutableMap.Builder<SchemaTableName, HBaseTableHandle> tablesBuilder = ImmutableMap.builder();
-            HTableDescriptor[] descriptors = admin.listTableDescriptorsByNamespace(schema);
-            for (HTableDescriptor table : descriptors) {
+            List<TableDescriptor> descriptors = admin.listTableDescriptorsByNamespace(schema.getBytes());
+            for (TableDescriptor table : descriptors) {
                 // If the target table is in the other namespace, table.getNameAsString() will return
                 // value like 'namespace1:tableName1', so we have to remove the unnecessary namespace.
-                String tableName;
-                if (table.getNameAsString() != null && table.getNameAsString().contains(":")) {
-                    tableName = table.getNameAsString().split(":")[1];
-                } else {
-                    tableName = table.getNameAsString();
+                String tableName = table.getTableName().getNameAsString();
+                if (tableName != null && tableName.contains(":")) {
+                    tableName = tableName.split(":")[1];
                 }
 
                 Objects.requireNonNull(tableName, "tableName cannot be null!");

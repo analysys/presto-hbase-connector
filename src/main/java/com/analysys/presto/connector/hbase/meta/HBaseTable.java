@@ -17,7 +17,7 @@ import com.analysys.presto.connector.hbase.utils.Utils;
 import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
 import io.prestosql.spi.connector.ColumnMetadata;
-import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.TableDescriptor;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,20 +32,21 @@ public class HBaseTable {
 
     public static final Logger logger = Logger.get(HBaseTable.class);
 
-    private final HTableDescriptor hTableDescriptor;
+    private final TableDescriptor hTableDescriptor;
     private final List<ColumnMetadata> columnsMetadata;
 
-    public HBaseTable(String schemaName, HTableDescriptor tabDesc, HBaseConfig config) {
+    public HBaseTable(String schemaName, TableDescriptor tabDesc, HBaseConfig config) {
         this.hTableDescriptor = Objects.requireNonNull(tabDesc, "tabDesc is null");
         Objects.requireNonNull(schemaName, "schemaName is null");
         ImmutableList<ColumnMetadata> tableMeta = null;
         try {
-            String tableName = tabDesc.getNameAsString() != null && tabDesc.getNameAsString().contains(":") ?
-                    tabDesc.getNameAsString().split(":")[1] : tabDesc.getNameAsString();
+            String tableNameAsString = tabDesc.getTableName().getNameAsString();
+            String tableName = tableNameAsString != null && tableNameAsString.contains(":") ?
+                    tableNameAsString.split(":")[1] : tableNameAsString;
             tableMeta = Utils.getColumnMetaFromJson(schemaName, tableName, config.getMetaDir());
             if (tableMeta == null || tableMeta.size() <= 0) {
-                logger.error("OOPS! Table meta info cannot be NULL, table name=" + tabDesc.getNameAsString());
-                throw new Exception("Cannot find meta info of table " + tabDesc.getNameAsString() + ".");
+                logger.error("OOPS! Table meta info cannot be NULL, table name=" + tableNameAsString);
+                throw new Exception("Cannot find meta info of table " + tableNameAsString + ".");
             }
         } catch (Exception e) {
             logger.error(e, e.getMessage());
@@ -54,7 +55,7 @@ public class HBaseTable {
     }
 
     public String getTableName() {
-        return this.hTableDescriptor.getNameAsString();
+        return this.hTableDescriptor.getTableName().getNameAsString();
     }
 
     List<ColumnMetadata> getColumnsMetadata() {
