@@ -16,7 +16,6 @@ package com.analysys.presto.connector.hbase.meta;
 import com.analysys.presto.connector.hbase.utils.Constant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
-
 import java.util.List;
 
 import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;

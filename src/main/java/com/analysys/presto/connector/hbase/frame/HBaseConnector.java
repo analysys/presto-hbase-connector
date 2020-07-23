@@ -14,15 +14,12 @@
 package com.analysys.presto.connector.hbase.frame;
 
 import com.analysys.presto.connector.hbase.meta.HBaseMetadata;
-import com.analysys.presto.connector.hbase.query.HBaseRecordSetProvider;
 import com.analysys.presto.connector.hbase.schedule.HBaseSplitManager;
 import io.airlift.bootstrap.LifeCycleManager;
 import io.airlift.log.Logger;
 import io.prestosql.spi.connector.*;
 import io.prestosql.spi.transaction.IsolationLevel;
-
 import javax.inject.Inject;
-import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 

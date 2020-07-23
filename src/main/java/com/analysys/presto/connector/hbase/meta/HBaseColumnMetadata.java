@@ -15,7 +15,6 @@ package com.analysys.presto.connector.hbase.meta;
 
 import io.prestosql.spi.connector.ColumnMetadata;
 import io.prestosql.spi.type.Type;
-
 import java.util.Objects;
 
 /**

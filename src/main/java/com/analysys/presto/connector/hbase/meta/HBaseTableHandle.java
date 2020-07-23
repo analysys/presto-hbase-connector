@@ -19,7 +19,6 @@ import io.prestosql.spi.connector.ColumnHandle;
 import io.prestosql.spi.connector.ConnectorTableHandle;
 import io.prestosql.spi.connector.SchemaTableName;
 import io.prestosql.spi.predicate.TupleDomain;
-
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
