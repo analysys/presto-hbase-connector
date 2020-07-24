@@ -19,7 +19,6 @@ package com.analysys.presto.connector.hbase.query;
 import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.meta.HBaseColumnHandle;
 import io.prestosql.spi.connector.*;
-
 import javax.inject.Inject;
 import java.util.List;
 

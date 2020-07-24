@@ -28,7 +28,6 @@ import io.airlift.configuration.ConfigBinder;
 import io.prestosql.spi.connector.ConnectorPageSinkProvider;
 import io.prestosql.spi.connector.ConnectorPageSourceProvider;
 import io.prestosql.spi.type.TypeManager;
-
 import java.util.Objects;
 
 /**

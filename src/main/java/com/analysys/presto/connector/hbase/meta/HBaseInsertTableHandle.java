@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import io.prestosql.spi.connector.ConnectorInsertTableHandle;
 import io.prestosql.spi.connector.SchemaTableName;
 import io.prestosql.spi.type.Type;
-
 import java.util.List;
 import java.util.Map;
 

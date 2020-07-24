@@ -26,7 +26,6 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-
 import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;

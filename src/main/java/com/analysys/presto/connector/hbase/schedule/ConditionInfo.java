@@ -20,7 +20,6 @@ import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import io.prestosql.spi.type.*;
 import org.apache.hadoop.hbase.util.Bytes;
-
 import java.math.BigDecimal;
 
 import static io.prestosql.spi.type.IntegerType.INTEGER;

@@ -31,10 +31,10 @@ import io.prestosql.spi.predicate.TupleDomain;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.RegionInfo;
-
 import javax.inject.Inject;
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static com.analysys.presto.connector.hbase.utils.Constant.*;
 import static com.analysys.presto.connector.hbase.utils.Utils.isEmpty;
 

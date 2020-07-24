@@ -23,7 +23,6 @@ import org.apache.hadoop.hbase.client.ClientSideRegionScanner;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-
 import java.net.InetAddress;
 import java.util.Date;
 import java.util.Iterator;

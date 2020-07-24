@@ -29,9 +29,7 @@ import io.prestosql.spi.type.VarcharType;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.SnapshotType;
-import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.client.SnapshotDescription;
-
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;

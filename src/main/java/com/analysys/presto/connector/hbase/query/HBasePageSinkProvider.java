@@ -17,7 +17,6 @@ import com.analysys.presto.connector.hbase.connection.HBaseClientManager;
 import com.analysys.presto.connector.hbase.meta.HBaseInsertTableHandle;
 import io.prestosql.spi.PrestoException;
 import io.prestosql.spi.connector.*;
-
 import javax.inject.Inject;
 
 import static com.google.common.base.Preconditions.checkArgument;

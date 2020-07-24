@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.prestosql.spi.HostAddress;
 import io.prestosql.spi.connector.ConnectorSplit;
 import org.apache.hadoop.hbase.client.RegionInfo;
-import org.apache.hadoop.hbase.shaded.protobuf.generated.HBaseProtos;
 import java.util.List;
 import java.util.Objects;
 
