@@ -3,12 +3,9 @@ package com.analysys.presto.connector.hbase.utils;
 import com.analysys.presto.connector.hbase.schedule.ConditionInfo;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 
-@RunWith(PowerMockRunner.class)
 public class UtilsTest {
 
   @Test

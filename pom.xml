@@ -16,18 +16,18 @@
     <groupId>com.analysys.presto</groupId>
     <version>meta-0.1.6-SNAPSHOT</version>
 
-    <artifactId>prestosql-hbase-315-ops</artifactId>
+    <artifactId>prestosql-hbase-338-ops</artifactId>
     <description>PrestoSql - HBase Connector</description>
 
     <properties>
         <air.check.skip-license>true</air.check.skip-license>
-        <presto.version>315</presto.version>
-        <dep.airlift.version>0.168</dep.airlift.version>
+        <presto.version>338</presto.version>
+        <dep.airlift.version>0.198</dep.airlift.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <java.version>1.8</java.version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <java.version>11</java.version>
     </properties>
 
     <dependencies>

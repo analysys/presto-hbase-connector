@@ -1,10 +1,8 @@
 package com.analysys.presto.connector.hbase.schedule;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
+
 public class HBaseSplitManagerTest {
 
     @Test
