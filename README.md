@@ -1,5 +1,3 @@
-Analysys Presto-Hbase-Connector component
-
 # Analysys Presto-HBase-Connector 
 
 The component is implemented based on the Presto Connector interface specification and is used to add the ability to query HBase to Presto.
@@ -8,11 +6,11 @@ Our performance is 10 to 100 times faster than other open source versions of the
 
 ## Performance Comparison
 
-| Env       | Detail                                                       |
-| --------- | ------------------------------------------------------------ |
-| Data Size | The event table contains 5 million records and 90 fields     |
-| Workers   | 3                                                            |
-| Hardware  | 16 logical core 64GB memory (Presto and HBase 16GB memory respectively) 4T*2 hard disk |
+| Environment | Detail                                                       |
+| ----------- | ------------------------------------------------------------ |
+| Data Size   | The event table contains 5 million records and 90 fields     |
+| Workers     | 3                                                            |
+| Hardware    | 16 logical core 64GB memory (Presto and HBase 16GB memory respectively) 4T*2 hard disk |
 
 ![analysys-hb-performance.png](https://github.com/analysys/presto-hbase-connector/blob/master/imgs/analysys-hb-performance.png?raw=true)
 
